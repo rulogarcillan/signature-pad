@@ -144,11 +144,11 @@ SignaturePad(
 
 ```kotlin
 // SVG
-val svg = state.toSvg(width = 800, height = 600, border = 10)
+val svg = state.toSvg()
 
 // Bitmap (transparent or white background)
-val transparentBitmap = state.toTransparentBitmap(width = 800, height = 600)
-val whiteBitmap = state.toBitmap(width = 800, height = 600)
+val transparentBitmap = state.toTransparentBitmap()
+val whiteBitmap = state.toBitmap()
 ```
 
 ## 🏗️ Architecture
