@@ -8,7 +8,7 @@
 A modern **Jetpack Compose** library for capturing smooth signature drawings with **UNDO/REDO functionality**. Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin with Compose-first architecture.
 
 <p align="center">
-  <img src="ART/sign.gif" alt="Signature Pad Demo" width="300"/>
+  <img src="ART/sign.gif" alt="Signature Pad Demo"/>
 </p>
 
 ## ✨ Features
