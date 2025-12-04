@@ -7,6 +7,10 @@
 
 A modern **Jetpack Compose** library for capturing smooth signature drawings with **UNDO/REDO functionality**. Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin with Compose-first architecture.
 
+<p align="center">
+  <img src="art/signature-pad-demo.gif" alt="Signature Pad Demo" width="300"/>
+</p>
+
 ## ✨ Features
 
 - 🎨 **Smooth Bézier Curves**: Variable width based on drawing velocity with Hermite smoothstep interpolation
