@@ -34,9 +34,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.tuppersoft.signaturepad.compose.SignaturePad as SignaturePadCompose
 import com.tuppersoft.signaturepad.compose.rememberSignaturePadState
 import com.tuppersoft.signaturepad.sample.theme.AndroidSignaturepadTheme
+import com.tuppersoft.signaturepad.compose.SignaturePad as SignaturePadCompose
 
 /**
  * Main activity showcasing the Signature Pad in a Jetpack Compose layout.
@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Suppress("LongMethod")
 @Composable
 private fun SignaturePadComposeVersion() {
     val state = rememberSignaturePadState()
@@ -61,7 +62,6 @@ private fun SignaturePadComposeVersion() {
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.White,
         bottomBar = {
-            // Barra de botones minimalista en la parte inferior
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -131,7 +131,6 @@ private fun SignaturePadComposeVersion() {
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Zona de firma - ocupa todo el espacio disponible
             SignaturePadCompose(
                 state = state,
                 modifier = Modifier
@@ -139,7 +138,6 @@ private fun SignaturePadComposeVersion() {
                     .weight(1f)
             )
 
-            // Línea y texto en la parte inferior
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -155,7 +153,6 @@ private fun SignaturePadComposeVersion() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Texto de términos
                 Text(
                     text = "I agree terms and conditions",
                     style = MaterialTheme.typography.bodySmall,

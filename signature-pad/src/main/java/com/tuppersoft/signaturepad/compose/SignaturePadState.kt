@@ -14,7 +14,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.createBitmap
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.bicPen
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.edding
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.fountainPen
@@ -113,6 +115,32 @@ public class SignaturePadState(
      * Use this property to enable/disable save or export buttons in your UI.
      */
     public val isEmpty: Boolean by derivedStateOf { _strokes.isEmpty() }
+
+    /**
+     * Size of the SignaturePad layout.
+     *
+     * This property stores the actual dimensions of the signature pad canvas.
+     * It's automatically updated when the layout size changes.
+     *
+     * Use this property when exporting the signature to ensure the bitmap
+     * has the same dimensions as the visible drawing area.
+     *
+     * Default: IntSize.Zero (before the layout is measured)
+     */
+    public var layoutSize: IntSize by mutableStateOf(value = IntSize.Zero)
+        private set
+
+    /**
+     * Updates the layout size (internal use).
+     *
+     * This method is called automatically by the SignaturePad composable
+     * when the layout size changes.
+     *
+     * @param size The new layout size in pixels.
+     */
+    internal fun updateLayoutSize(size: IntSize) {
+        layoutSize = size
+    }
 
     // Private mutable state for internal calculations
     private var _lastVelocity: Float by mutableFloatStateOf(value = 0f)
@@ -322,13 +350,19 @@ public class SignaturePadState(
      * Exports the signature as an SVG string.
      *
      * The SVG format allows for scalable, resolution-independent representation
-     * of the signature. The exported SVG contains all strokes as path elements.
+     * of the signature. The exported SVG contains all strokes as path elements
+     * using the dimensions stored in [layoutSize] (automatically captured from
+     * the SignaturePad composable).
      *
-     * @param width Width of the SVG viewport in pixels.
-     * @param height Height of the SVG viewport in pixels.
-     * @return The SVG representation of the signature as a string.
+     * The SVG viewport dimensions match exactly the size of the SignaturePad canvas,
+     * ensuring the exported signature appears identical to what was drawn.
+     *
+     * @return The SVG representation of the signature as a string, with viewport
+     *         dimensions matching the SignaturePad layout size.
+     * @throws IllegalStateException if called before the layout size is measured
+     *         (when layoutSize is IntSize.Zero).
      */
-    public fun toSvg(width: Int, height: Int): String {
+    public fun toSvg(): String {
         svgBuilder.clear()
         _strokes.forEach { stroke: Stroke ->
             stroke.curves.forEach { curve: StrokeCurve ->
@@ -338,25 +372,26 @@ public class SignaturePadState(
                 )
             }
         }
-        return svgBuilder.build(width = width, height = height)
+        return svgBuilder.build(width = layoutSize.width, height = layoutSize.height)
     }
 
     /**
      * Exports the signature as a Bitmap with white background.
      *
-     * This function renders all strokes onto a bitmap with the specified dimensions.
+     * This function renders all strokes onto a bitmap using the dimensions stored
+     * in [layoutSize] (automatically captured from the SignaturePad composable).
      * The background is filled with white color, suitable for printing or sharing.
      *
-     * @param width Width of the bitmap in pixels.
-     * @param height Height of the bitmap in pixels.
-     * @return A Bitmap containing the signature with white background.
+     * The bitmap dimensions match exactly the size of the SignaturePad canvas,
+     * ensuring the exported signature appears identical to what was drawn.
+     *
+     * @return A Bitmap containing the signature with white background, sized to match
+     *         the SignaturePad layout dimensions.
+     * @throws IllegalStateException if called before the layout size is measured
+     *         (when layoutSize is IntSize.Zero).
      */
-    public fun toBitmap(width: Int, height: Int): android.graphics.Bitmap {
-        val bitmap: android.graphics.Bitmap = android.graphics.Bitmap.createBitmap(
-            width,
-            height,
-            android.graphics.Bitmap.Config.ARGB_8888
-        )
+    public fun toBitmap(): android.graphics.Bitmap {
+        val bitmap: android.graphics.Bitmap = createBitmap(layoutSize.width, layoutSize.height)
         val canvas = android.graphics.Canvas(bitmap)
 
         // Draw white background
@@ -389,19 +424,21 @@ public class SignaturePadState(
     /**
      * Exports the signature as a transparent Bitmap.
      *
-     * This function renders all strokes onto a bitmap with the specified dimensions.
-     * The background is transparent, suitable for overlaying on other images.
+     * This function renders all strokes onto a bitmap using the dimensions stored
+     * in [layoutSize] (automatically captured from the SignaturePad composable).
+     * The background is transparent, suitable for overlaying on other images or
+     * compositing with other graphics.
      *
-     * @param width Width of the bitmap in pixels.
-     * @param height Height of the bitmap in pixels.
-     * @return A Bitmap containing the signature with transparent background.
+     * The bitmap dimensions match exactly the size of the SignaturePad canvas,
+     * ensuring the exported signature appears identical to what was drawn.
+     *
+     * @return A Bitmap containing the signature with transparent background, sized
+     *         to match the SignaturePad layout dimensions.
+     * @throws IllegalStateException if called before the layout size is measured
+     *         (when layoutSize is IntSize.Zero).
      */
-    public fun toTransparentBitmap(width: Int, height: Int): android.graphics.Bitmap {
-        val bitmap: android.graphics.Bitmap = android.graphics.Bitmap.createBitmap(
-            width,
-            height,
-            android.graphics.Bitmap.Config.ARGB_8888
-        )
+    public fun toTransparentBitmap(): android.graphics.Bitmap {
+        val bitmap: android.graphics.Bitmap = createBitmap(layoutSize.width, layoutSize.height)
         val canvas = android.graphics.Canvas(bitmap)
 
         val paint = android.graphics.Paint().apply {
@@ -577,6 +614,28 @@ public data class SignaturePadConfig(
     val penColor: Color = PenColor,
     @FloatRange(from = 0.0, to = 1.0) val velocityFilterWeight: Float = VelocityFilterWeight,
 ) {
+
+    /**
+     * Converts this configuration to a [SignaturePadState].
+     *
+     * Useful for initializing a [SignaturePadState] with this config.
+     *
+     * @return A new [SignaturePadState] instance with parameters from this config.
+     *
+     * sample usage:
+     * ```
+     * val state = SignaturePadConfig.fountainPen().toSignaturePadState()
+     * ```
+     */
+    public fun toSignaturePadState(): SignaturePadState {
+        return SignaturePadState(
+            penMinWidth = penMinWidth,
+            penMaxWidth = penMaxWidth,
+            penColor = penColor,
+            velocityFilterWeight = velocityFilterWeight
+        )
+    }
+
     /**
      * Predefined configurations for common writing instruments.
      */

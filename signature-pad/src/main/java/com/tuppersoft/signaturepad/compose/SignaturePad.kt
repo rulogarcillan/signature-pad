@@ -94,6 +94,7 @@ public fun SignaturePad(
         modifier = modifier
             .onSizeChanged { newSize ->
                 size = newSize
+                state.updateLayoutSize(newSize)
                 if (newSize.width > 0 && newSize.height > 0) {
                     signatureBitmap = createBitmap(newSize.width, newSize.height)
                 }
