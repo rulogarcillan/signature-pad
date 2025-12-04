@@ -1,5 +1,5 @@
 # Android Signature Pad - Compose
-
+[![Maven Central Version](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-purple.svg)](https://kotlinlang.org)
@@ -24,9 +24,11 @@ A modern **Jetpack Compose** library for capturing smooth signature drawings wit
 
 ## 📦 Installation
 
+[![Maven Central Version](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
+
 ```kotlin
 dependencies {
-    implementation("com.tuppersoft:signature-pad:1.0.0")
+    implementation("com.tuppersoft:signature-pad:$lastVersion")
 }
 ```
 
