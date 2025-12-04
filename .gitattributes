@@ -1,0 +1,115 @@
+# Handle line endings automatically for files detected as text
+# and leave all files detected as binary untouched.
+* text=auto
+
+# Source code
+*.java text diff=java
+*.kt text diff=kotlin
+*.kts text diff=kotlin
+*.gradle text diff=java
+*.gradle.kts text diff=kotlin
+*.xml text
+*.json text
+*.properties text
+*.toml text
+
+# Documentation
+*.md text
+*.txt text
+AUTHORS text
+CHANGELOG text
+CHANGES text
+CONTRIBUTING text
+COPYING text
+copyright text
+*COPYRIGHT* text
+INSTALL text
+license text
+LICENSE text
+NEWS text
+readme text
+*README* text
+TODO text
+
+# Configuration
+*.cnf text
+*.conf text
+*.config text
+.editorconfig text
+.gitattributes text
+.gitconfig text
+.gitignore text
+.htaccess text
+
+# Ignore files (like .gitignore)
+.*ignore text
+
+# Compiled Dynamic libraries
+*.so binary
+*.dylib binary
+*.dll binary
+
+# Compiled Static libraries
+*.lai binary
+*.la binary
+*.a binary
+*.lib binary
+
+# Executables
+*.exe binary
+*.out binary
+*.app binary
+
+# Android specific
+*.apk binary
+*.ap_ binary
+*.dex binary
+*.class binary
+*.so binary
+*.jar binary
+*.aar binary
+*.aab binary
+
+# Archives
+*.7z binary
+*.jar binary
+*.rar binary
+*.zip binary
+*.gz binary
+*.bzip binary
+*.bz2 binary
+*.xz binary
+*.lzma binary
+*.cab binary
+
+# Images
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text
+*.webp binary
+
+# Fonts
+*.ttf binary
+*.eot binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# Audio
+*.mp3 binary
+*.ogg binary
+*.wav binary
+
+# Video
+*.mp4 binary
+*.mov binary
+*.avi binary
+*.webm binary
+
+# Keystore
+*.jks binary
+*.keystore binary
+
