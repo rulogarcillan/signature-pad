@@ -21,10 +21,10 @@ import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.bicPen
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.edding
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.fountainPen
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.marker
-import com.tuppersoft.signaturepad.utils.Bezier
-import com.tuppersoft.signaturepad.utils.SvgBuilder
-import com.tuppersoft.signaturepad.utils.TimedPoint
-import com.tuppersoft.signaturepad.utils.drawBezierCurve
+import com.tuppersoft.signaturepad.export.SvgBuilder
+import com.tuppersoft.signaturepad.geometry.Bezier
+import com.tuppersoft.signaturepad.geometry.TimedPoint
+import com.tuppersoft.signaturepad.rendering.drawBezierCurve
 import kotlin.math.max
 
 /**

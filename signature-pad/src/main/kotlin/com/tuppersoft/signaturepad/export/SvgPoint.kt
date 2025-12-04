@@ -1,4 +1,6 @@
-package com.tuppersoft.signaturepad.utils
+package com.tuppersoft.signaturepad.export
+
+import com.tuppersoft.signaturepad.geometry.TimedPoint
 
 /**
  * Represents a point as it would be in the generated SVG document.

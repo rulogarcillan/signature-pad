@@ -1,13 +1,15 @@
-package com.tuppersoft.signaturepad.utils
-
+package com.tuppersoft.signaturepad.rendering
 import android.graphics.Canvas
 import android.graphics.Paint
+import com.tuppersoft.signaturepad.geometry.Bezier
 import kotlin.math.ceil
-
 /**
- * Utility functions for drawing Bézier curves on Android Canvas.
+ * Android-specific rendering utilities for Bézier curves.
+ *
+ * This file contains functions that use Android's Canvas API to render
+ * Bézier curves with variable width. These functions are not portable
+ * to other platforms without adaptation.
  */
-
 /**
  * Draws a Bézier curve on a canvas with variable width.
  *
@@ -43,34 +45,25 @@ public fun drawBezierCurve(
 ) {
     val originalStrokeWidth: Float = paint.strokeWidth
     val widthChange: Float = endWidth - startWidth
-
     val numberOfSteps: Int = ceil(x = curve.length()).toInt()
-
     repeat(times = numberOfSteps) { stepIndex ->
         val t: Float = stepIndex.toFloat() / numberOfSteps
-
         val tSquared: Float = t * t
         val tCubed: Float = tSquared * t
-
         val oneMinusT: Float = 1f - t
         val oneMinusTSquared: Float = oneMinusT * oneMinusT
         val oneMinusTCubed: Float = oneMinusTSquared * oneMinusT
-
         val pointX: Float = oneMinusTCubed * curve.startPoint.x +
             3f * oneMinusTSquared * t * curve.control1.x +
             3f * oneMinusT * tSquared * curve.control2.x +
             tCubed * curve.endPoint.x
-
         val pointY: Float = oneMinusTCubed * curve.startPoint.y +
             3f * oneMinusTSquared * t * curve.control1.y +
             3f * oneMinusT * tSquared * curve.control2.y +
             tCubed * curve.endPoint.y
-
         val currentStrokeWidth: Float = startWidth + tCubed * widthChange
         paint.strokeWidth = currentStrokeWidth
-
         canvas.drawPoint(pointX, pointY, paint)
     }
-
     paint.strokeWidth = originalStrokeWidth
 }

@@ -1,4 +1,4 @@
-package com.tuppersoft.signaturepad.utils
+package com.tuppersoft.signaturepad.geometry
 
 import kotlin.math.sqrt
 

@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
@@ -24,11 +25,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.createBitmap
-import com.tuppersoft.signaturepad.utils.Bezier
-import com.tuppersoft.signaturepad.utils.ControlTimedPoints
-import com.tuppersoft.signaturepad.utils.TimedPoint
-import com.tuppersoft.signaturepad.utils.drawBezierCurve
-import kotlin.math.sqrt
+import com.tuppersoft.signaturepad.geometry.Bezier
+import com.tuppersoft.signaturepad.geometry.ControlTimedPoints
+import com.tuppersoft.signaturepad.geometry.TimedPoint
+import com.tuppersoft.signaturepad.geometry.calculateControlPoints
+import com.tuppersoft.signaturepad.rendering.drawBezierCurve
 
 /**
  * A Composable for capturing smooth signature drawings with Bézier curve interpolation.
@@ -72,7 +73,7 @@ public fun SignaturePad(
     val penMinWidthPx by remember { derivedStateOf { with(density) { state.penMinWidth.toPx() } } }
     val penMaxWidthPx by remember { derivedStateOf { with(density) { state.penMaxWidth.toPx() } } }
     val paint = rememberSignaturePaint(penColor = state.penColor)
-    val controlPointsCache = remember { ControlTimedPoints() }
+    val controlTimedPoints = remember { ControlTimedPoints() }
     val bezierCache = remember { Bezier() }
 
     InitializeSignatureEffects(
@@ -105,7 +106,7 @@ public fun SignaturePad(
                     paint = paint,
                     penMinWidthPx = penMinWidthPx,
                     penMaxWidthPx = penMaxWidthPx,
-                    controlPointsCache = controlPointsCache,
+                    controlPointsCache = controlTimedPoints,
                     bezierCache = bezierCache,
                     signatureBitmap = { signatureBitmap },
                     onDrawVersionIncrement = { drawVersion++ },
@@ -113,67 +114,23 @@ public fun SignaturePad(
                 )
             }
     ) {
-        // Read drawVersion to trigger recomposition when it changes
-        // This ensures real-time drawing updates during user interaction
         if (drawVersion >= 0) {
+
             signatureBitmap?.let { bitmap ->
                 drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawBitmap(
-                        bitmap,
-                        0f,
-                        0f,
-                        null
-                    )
+                    canvas.nativeCanvas.drawBitmap(bitmap, 0f, 0f, null)
                 }
             }
         }
     }
 }
 
-/**
- * Calculates control points for a smooth Bézier curve.
- */
-private fun calculateCurveControlPoints(
-    s1: TimedPoint,
-    s2: TimedPoint,
-    s3: TimedPoint,
-    cache: ControlTimedPoints
-): ControlTimedPoints {
-    val dx1: Float = s1.x - s2.x
-    val dy1: Float = s1.y - s2.y
-    val dx2: Float = s2.x - s3.x
-    val dy2: Float = s2.y - s3.y
-
-    val m1X: Float = (s1.x + s2.x) / 2f
-    val m1Y: Float = (s1.y + s2.y) / 2f
-    val m2X: Float = (s2.x + s3.x) / 2f
-    val m2Y: Float = (s2.y + s3.y) / 2f
-
-    val l1: Float = sqrt(x = dx1 * dx1 + dy1 * dy1)
-    val l2: Float = sqrt(x = dx2 * dx2 + dy2 * dy2)
-
-    val dxm: Float = m1X - m2X
-    val dym: Float = m1Y - m2Y
-    var k: Float = l2 / (l1 + l2)
-    if (k.isNaN()) k = 0f
-
-    val cmX: Float = m2X + dxm * k
-    val cmY: Float = m2Y + dym * k
-
-    val tx: Float = s2.x - cmX
-    val ty: Float = s2.y - cmY
-
-    return cache.set(
-        c1 = TimedPoint(x = m1X + tx, y = m1Y + ty),
-        c2 = TimedPoint(x = m2X + tx, y = m2Y + ty)
-    )
-}
 
 /**
  * Creates and remembers a Paint object configured for signature drawing.
  */
 @Composable
-private fun rememberSignaturePaint(penColor: androidx.compose.ui.graphics.Color): Paint {
+private fun rememberSignaturePaint(penColor: Color): Paint {
     val paint = remember {
         Paint().apply {
             isAntiAlias = true
@@ -232,7 +189,7 @@ private fun RedrawStrokesEffect(
     val strokesVersion by remember { derivedStateOf { state.strokes.size } }
     val currentOnBitmapUpdate by rememberUpdatedState(newValue = onBitmapUpdate)
 
-    LaunchedEffect(strokesVersion, size) {
+    LaunchedEffect(strokesVersion, size, state.penColor) {
         if (size.width > 0 && size.height > 0) {
             val bitmap = createBitmap(size.width, size.height)
             val canvas = Canvas(bitmap)
@@ -348,7 +305,7 @@ private fun processBezierCurve(
     signatureBitmap: () -> Bitmap?,
     onDrawVersionIncrement: () -> Unit
 ) {
-    val tmp1 = calculateCurveControlPoints(
+    val tmp1 = calculateControlPoints(
         state.currentPoints[0],
         state.currentPoints[1],
         state.currentPoints[2],
@@ -356,7 +313,7 @@ private fun processBezierCurve(
     )
     val c2 = tmp1.c2
 
-    val tmp2 = calculateCurveControlPoints(
+    val tmp2 = calculateControlPoints(
         state.currentPoints[1],
         state.currentPoints[2],
         state.currentPoints[3],
@@ -375,7 +332,7 @@ private fun processBezierCurve(
     velocity = if (velocity.isNaN()) 0f else velocity
 
     velocity = state.velocityFilterWeight * velocity +
-        (1 - state.velocityFilterWeight) * state.lastVelocity
+            (1 - state.velocityFilterWeight) * state.lastVelocity
 
     val newWidth = state.calculateStrokeWidth(
         velocity,

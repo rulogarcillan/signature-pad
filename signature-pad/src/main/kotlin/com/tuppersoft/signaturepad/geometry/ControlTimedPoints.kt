@@ -1,4 +1,4 @@
-package com.tuppersoft.signaturepad.utils
+package com.tuppersoft.signaturepad.geometry
 
 /**
  * Holds a pair of control points for a Bézier curve segment.

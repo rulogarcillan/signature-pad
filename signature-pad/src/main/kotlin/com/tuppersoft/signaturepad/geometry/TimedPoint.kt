@@ -1,12 +1,15 @@
-package com.tuppersoft.signaturepad.utils
+package com.tuppersoft.signaturepad.geometry
 
 import kotlin.math.sqrt
 
 /**
- * Represents a point in time with x, y coordinates and a timestamp.
+ * Represents a point in time with x, y coordinates and an automatically captured timestamp.
  *
  * This class is used to track individual points during signature capture,
  * allowing for velocity and distance calculations between consecutive points.
+ *
+ * The timestamp is captured automatically when the point is created and cannot be overridden,
+ * ensuring accurate velocity calculations based on the actual moment of creation.
  *
  * @property x The X coordinate of the point in pixels.
  * @property y The Y coordinate of the point in pixels.
@@ -17,6 +20,10 @@ public data class TimedPoint(
 ) {
     /**
      * Timestamp in milliseconds since Unix epoch when this point was created.
+     *
+     * This value is captured automatically and is immutable. It represents the exact
+     * moment this point was instantiated, which is essential for calculating drawing
+     * velocity between consecutive points.
      */
     private val timestamp: Long = System.currentTimeMillis()
 

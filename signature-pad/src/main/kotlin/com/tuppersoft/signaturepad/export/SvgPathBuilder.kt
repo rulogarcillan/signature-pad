@@ -1,4 +1,4 @@
-package com.tuppersoft.signaturepad.utils
+package com.tuppersoft.signaturepad.export
 
 /**
  * Builds an SVG path element as a string.

@@ -1,4 +1,6 @@
-package com.tuppersoft.signaturepad.utils
+package com.tuppersoft.signaturepad.export
+
+import com.tuppersoft.signaturepad.geometry.Bezier
 
 /**
  * Builds a complete SVG document from multiple paths.
