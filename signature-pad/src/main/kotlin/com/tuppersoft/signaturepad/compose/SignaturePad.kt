@@ -69,8 +69,8 @@ public fun SignaturePad(
     var size by remember { mutableStateOf(IntSize.Zero) }
     var signatureBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var drawVersion by remember { mutableIntStateOf(0) }
-    val penMinWidthPx = with(density) { state.penMinWidth.toPx() }
-    val penMaxWidthPx = with(density) { state.penMaxWidth.toPx() }
+    val penMinWidthPx by remember { derivedStateOf { with(density) { state.penMinWidth.toPx() } } }
+    val penMaxWidthPx by remember { derivedStateOf { with(density) { state.penMaxWidth.toPx() } } }
     val paint = rememberSignaturePaint(penColor = state.penColor)
     val controlPointsCache = remember { ControlTimedPoints() }
     val bezierCache = remember { Bezier() }
@@ -99,7 +99,7 @@ public fun SignaturePad(
                     signatureBitmap = createBitmap(newSize.width, newSize.height)
                 }
             }
-            .pointerInput(Unit) {
+            .pointerInput(penMinWidthPx, penMaxWidthPx) {
                 handleSignatureGestures(
                     state = state,
                     paint = paint,
