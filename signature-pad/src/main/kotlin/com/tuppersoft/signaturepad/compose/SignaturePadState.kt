@@ -79,10 +79,20 @@ public class SignaturePadState {
     // Public Functions
     // ========================================
 
+    /**
+     * Whether an UNDO operation can be performed.
+     */
     public fun canUndo(): Boolean = _strokes.isNotEmpty()
 
+    /**
+     * Whether a REDO operation can be performed.
+     */
     public fun canRedo(): Boolean = _undoneStrokes.isNotEmpty()
 
+    /**
+     * Performs an UNDO operation.
+     * @return True if successful, false if no strokes to undo.
+     */
     public fun undo(): Boolean {
         if (!canUndo()) return false
         val lastStroke = _strokes.removeAt(_strokes.lastIndex)
@@ -90,6 +100,10 @@ public class SignaturePadState {
         return true
     }
 
+    /**
+     * Performs a REDO operation.
+     * @return True if successful, false if no strokes to redo.
+     */
     public fun redo(): Boolean {
         if (!canRedo()) return false
         val stroke = _undoneStrokes.removeAt(_undoneStrokes.lastIndex)
@@ -97,6 +111,7 @@ public class SignaturePadState {
         return true
     }
 
+    /** Clears all strokes and resets the state. */
     public fun clear() {
         _strokes.clear()
         _undoneStrokes.clear()
@@ -106,10 +121,18 @@ public class SignaturePadState {
         _lastWidth = 0f
     }
 
+    /** Exports the signature as an SVG string. */
     public fun toSvg(): String {
         return exporter.toSvg(strokes = _strokes, size = layoutSize)
     }
 
+    /**
+     * Exports the signature as a Bitmap.
+     *
+     * @param crop Whether to crop the bitmap to the drawn content.
+     * @param paddingCrop Extra padding (in pixels) around the cropped content.
+     * @return The exported Bitmap.
+     */
     public fun toBitmap(
         crop: Boolean = false,
         paddingCrop: Int = 0
@@ -123,6 +146,13 @@ public class SignaturePadState {
         )
     }
 
+    /**
+     * Exports the signature as a transparent Bitmap.
+     *
+     * @param crop Whether to crop the bitmap to the drawn content.
+     * @param paddingCrop Extra padding (in pixels) around the cropped content.
+     * @return The exported transparent Bitmap.
+     */
     public fun toTransparentBitmap(
         crop: Boolean = false,
         paddingCrop: Int = 0

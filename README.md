@@ -1,38 +1,48 @@
 # Android Signature Pad - Jetpack Compose
-[![Maven Central Version](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
+
+[![Maven Central](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-purple.svg)](https://kotlinlang.org)
-[![Compose](https://img.shields.io/badge/Compose-Ready-brightgreen.svg)](https://developer.android.com/jetpack/compose)
 
-A modern **Jetpack Compose** library for capturing smooth signature drawings with **UNDO/REDO functionality**. Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin with Compose-first architecture.
+A modern **Jetpack Compose** library for capturing smooth signature drawings with **UNDO/REDO** functionality. 
+
+Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin with Compose-first architecture.
 
 <p align="center">
   <img src="ART/sign.gif" alt="Signature Pad Demo"/>
 </p>
 
-## ✨ Features
+## Features
 
-- 🎨 **Smooth Bézier Curves**: Variable width based on drawing velocity with Hermite smoothstep interpolation
-- ♻️ **UNDO/REDO**: Full history management for individual strokes
-- 📱 **Jetpack Compose Native**: Built with Compose best practices
-- 🖊️ **Writing Instrument Presets**: Fountain pen, BIC, marker, Edding styles
-- 🎨 **Highly Customizable**: Pen color, stroke width, velocity smoothing
-- 📤 **Export**: Bitmap and SVG format support
-- 🏗️ **State Hoisting**: Follows Compose architecture patterns
-- 🔒 **Type Safe**: Explicit API mode with strict null-safety
+### Drawing Engine
+- 🎨 **Smooth Bézier Curves**: Catmull-Rom spline interpolation for natural stroke rendering
+- 📏 **Velocity-Based Width**: Dynamic stroke width based on drawing speed (faster = thinner, slower = thicker)
+- 🎯 **Pressure Simulation**: Gamma curve adjustment for realistic pen pressure feel
+- 🔄 **Adaptive Smoothing**: EMA filters for velocity and width transitions (configurable 0.0-1.0)
+- 📐 **Noise Filtering**: Configurable input threshold to eliminate jitter
 
-## 📦 Installation
+### Configuration & Customization
+- 🖊️ **3 Pre-configured Presets**: Fountain pen, BIC pen, Edding marker with optimized parameters
+- ⚙️ **9 Adjustable Parameters**: Width range, color, velocity thresholds, smoothing weights, pressure gamma, noise threshold
+- 🎨 **Custom Color Support**: Any color for pen strokes
 
-[![Maven Central Version](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
+### User Experience
+- ♻️ **Full UNDO/REDO**: Complete history management for individual strokes
+- 📤 **Multiple Export Formats**: Bitmap (white/transparent background), SVG with auto-crop support
+- ✂️ **Smart Crop**: Automatic content detection with configurable padding
+- 🏗️ **Compose Best Practices**: State hoisting, explicit API mode, immutable data structures
 
-```kotlin
+## Installation
+
+[![Maven Central](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
+```gradle
 dependencies {
     implementation("com.tuppersoft:signature-pad:$lastVersion")
 }
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```kotlin
 @Composable
@@ -42,90 +52,78 @@ fun SignatureScreen() {
     Column {
         SignaturePad(
             state = state,
-            modifier = Modifier.fillMaxWidth().weight(1f)
+            config = SignaturePadConfig.fountainPen(),
+            modifier = Modifier.fillMaxWidth()
         )
-        Row {
-            Button(
-                onClick = { state.undo() },
-                enabled = state.canUndo()
-            ) {
-                Text("Undo")
-            }
-            Button(
-                onClick = { state.redo() },
-                enabled = state.canRedo()
-            ) {
-                Text("Redo")
-            }
-            Button(
-                onClick = { state.clear() },
-                enabled = !state.isEmpty
-            ) {
-                Text("Clear")
-            }
-        }
     }
 }
 ```
+## Usage
 
-## 🖊️ Writing Instrument Presets
+### Writing Instrument Presets
 
 ```kotlin
-// Fountain Pen - Elegant with moderate contrast (1-4.5dp)
-val state = rememberSignaturePadState(
-    signaturePadConfig = SignaturePadConfig.fountainPen()
-)
+// Fountain Pen (1-4.5dp) - Elegant, variable width
+SignaturePad(config = SignaturePadConfig.fountainPen())
 
-// BIC Pen - Uniform and consistent (2-2.5dp)
-val state = rememberSignaturePadState(
-    signaturePadConfig = SignaturePadConfig.bicPen()
-)
+// Pen (2-2.5dp) - Uniform, consistent
+SignaturePad(config = SignaturePadConfig.bicPen())
 
-// Marker - Thick and uniform (3-4dp)
-val state = rememberSignaturePadState(
-    signaturePadConfig = SignaturePadConfig.marker()
-)
+// Marker (5-7dp) - Bold, thick strokes
+SignaturePad(config = SignaturePadConfig.edding())
+```
 
-// Edding - Very bold (5-6.5dp)
-val state = rememberSignaturePadState(
-    signaturePadConfig = SignaturePadConfig.edding()
-)
+### Custom Configuration
 
-// Custom configuration
-val state = rememberSignaturePadState(
-    signaturePadConfig = SignaturePadConfig(
-        penMinWidth = 2.dp,
-        penMaxWidth = 8.dp,
-        penColor = Color.Blue,
-        velocityFilterWeight = 0.8f  // 0.3-0.5: responsive, 0.6-0.8: balanced, 0.85-0.95: smooth
+```kotlin
+SignaturePad(
+    config = SignaturePadConfig(
+        penMinWidth = 2.dp,              // Thinnest line
+        penMaxWidth = 8.dp,               // Thickest line
+        penColor = Color.Blue,            // Pen color
+        velocitySmoothness = 0.8f,        // Drawing smoothness (0.0-1.0)
+        widthSmoothness = 0.7f,           // Width transition smoothness (0.0-1.0)
+        minVelocity = 0f,                 // Speed for max width (px/ms)
+        maxVelocity = 10f,                // Speed for min width (px/ms)
+        widthVariation = 1.5f,            // Thickness contrast (1.0 = linear)
+        inputNoiseThreshold = 1.0f        // Hand shake filter (px)
     )
 )
 ```
 
-## 📖 API Reference
-
 ### State Management
 
 ```kotlin
-val state = rememberSignaturePadState(
-    signaturePadConfig = SignaturePadConfig.fountainPen(penColor = Color.Blue)
-)
+val state = rememberSignaturePadState()
 
-// Properties
-state.isEmpty           // Boolean: true if no signature
-state.canUndo()        // Boolean: true if undo is available
-state.canRedo()        // Boolean: true if redo is available
+// Check state
+state.isEmpty           // Boolean
+state.canUndo()        // Boolean
+state.canRedo()        // Boolean
 
 // Actions
-state.undo()           // Boolean: returns true if undo was successful
-state.redo()           // Boolean: returns true if redo was successful
-state.clear()          // Unit: clears all strokes
+state.undo()           // Boolean (returns true if successful)
+state.redo()           // Boolean (returns true if successful)
+state.clear()          // Unit
+```
 
-// Dynamic configuration
-state.penMinWidth = 3.dp
-state.penMaxWidth = 8.dp
-state.penColor = Color.Red
-state.velocityFilterWeight = 0.85f
+### Export
+
+```kotlin
+// SVG
+val svg: String = state.toSvg()
+
+// Bitmap with white background
+val bitmap = state.toBitmap()
+
+// Bitmap with transparent background
+val transparentBitmap = state.toTransparentBitmap()
+
+// Auto-crop to signature bounds
+val croppedBitmap = state.toBitmap(
+    crop = true,
+    paddingCrop = 16  // pixels of padding around signature
+)
 ```
 
 ### Callbacks
@@ -133,66 +131,28 @@ state.velocityFilterWeight = 0.85f
 ```kotlin
 SignaturePad(
     state = state,
-    modifier = modifier,
-    onStartSign = { /* Called when user starts drawing */ },
-    onSign = { /* Called when signature is updated */ },
-    onClear = { /* Called when signature is cleared */ }
+    config = SignaturePadConfig.fountainPen(),
+    onStartSign = { /* User started drawing */ },
+    onSign = { /* Signature updated */ },
+    onClear = { /* Signature cleared */ }
 )
 ```
 
-### Export
+## Configuration Parameters
 
-```kotlin
-// SVG
-val svg = state.toSvg()
+| Parameter | Type | Range | Default | User Question | Description |
+|-----------|------|-------|---------|---------------|-------------|
+| `penMinWidth` | Dp | - | 1.0.dp | *"What's the thinnest my line can be?"* | Minimum stroke width (fast drawing) |
+| `penMaxWidth` | Dp | - | 4.0.dp | *"What's the thickest my line can be?"* | Maximum stroke width (slow drawing) |
+| `penColor` | Color | - | Ink Blue (#003D82) | *"What color is my pen?"* | Stroke color |
+| `velocitySmoothness` | Float | 0.0-1.0 | 0.85 | *"How smooth should the drawing feel?"* | Stroke smoothness (0.0 = jumpy, 1.0 = very smooth) |
+| `widthSmoothness` | Float | 0.0-1.0 | 0.7 | *"How gradual should thickness changes be?"* | Width transition smoothness (0.0 = abrupt, 1.0 = gradual) |
+| `minVelocity` | Float | 0.0+ | 0.0 | *"When does the line stop getting thicker?"* | Velocity for maximum width (px/ms) |
+| `maxVelocity` | Float | 0.0+ | 8.0 | *"When does the line stop getting thinner?"* | Velocity for minimum width (px/ms) |
+| `widthVariation` | Float | 0.5-3.0 | 1.5 | *"How much should thickness vary with speed?"* | Width contrast (1.0 = linear, >1.0 = more contrast, <1.0 = less) |
+| `inputNoiseThreshold` | Float | 0.0+ | 0.8 | *"How much should I filter hand shake?"* | Min distance between points to filter tremor (px) |
 
-// Bitmap (transparent or white background)
-val transparentBitmap = state.toTransparentBitmap()
-val whiteBitmap = state.toBitmap()
-```
-
-## 🏗️ Architecture
-
-### Key Features
-
-- **Immutable Data**: All stroke data uses immutable collections
-- **Adaptive Sampling**: Bézier curves use 10-30 steps based on length
-- **Hermite Smoothstep**: Width interpolation (3t² - 2t³) for natural transitions
-- **Explicit API**: All public APIs documented with KDoc
-- **Type Safety**: Strict null-safety, no `!!` operators
-- **Compose Best Practices**: `rememberUpdatedState`, proper state hoisting
-
-### Performance
-
-- ✅ Object reuse (cached Bézier and control point instances)
-- ✅ Adaptive sampling (more steps for longer curves)
-- ✅ Optimized bitmap redrawing for UNDO/REDO
-- ✅ Real-time drawing with incremental updates
-
-## 🤝 Contributing
-
-Contributions are welcome! Please submit a Pull Request.
-
-```bash
-git clone https://github.com/rulogarcillan/signature-pad.git
-cd signature-pad
-./gradlew build
-```
-
-### Code Quality
-
-This project uses:
-- **Detekt** for static analysis
-- **Detekt Compose Rules** for Compose best practices
-- **Explicit API mode** for clear public APIs
-- **KDoc** for comprehensive documentation
-
-```bash
-# Run code quality checks
-./gradlew detekt
-```
-
-## 📄 License
+## License
 
 ```
 Copyright 2025 Tuppersoft by Rulo Garcillan
@@ -211,15 +171,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-This is a derivative work based on [android-signaturepad](https://github.com/gcacace/android-signaturepad) by Gianluca Cacace, complying with Apache License 2.0 requirements.
+This is a derivative work based on [android-signaturepad](https://github.com/gcacace/android-signaturepad) by Gianluca Cacace.
 
-## 📧 Support
+## Contributing
 
-For questions or issues, please [open an issue](https://github.com/rulogarcillan/signature-pad/issues) on GitHub.
+Contributions are welcome! Please submit a Pull Request.
 
 ---
 
 **⭐ If you find this library useful, please star the repo!**
-
-
 

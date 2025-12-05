@@ -153,28 +153,29 @@ internal class SignatureExporter {
         @Px padding: Int,
         backgroundColor: Int
     ): android.graphics.Bitmap {
-        val bounds = calculateSignatureBounds(strokes) ?: return source
+        return calculateSignatureBounds(strokes)?.let { bounds ->
+            val left = (bounds.left - padding).toInt().coerceAtLeast(0)
+            val top = (bounds.top - padding).toInt().coerceAtLeast(0)
+            val right = (bounds.right + padding).toInt().coerceAtMost(source.width)
+            val bottom = (bounds.bottom + padding).toInt().coerceAtMost(source.height)
 
-        val left = (bounds.left - padding).toInt().coerceAtLeast(0)
-        val top = (bounds.top - padding).toInt().coerceAtLeast(0)
-        val right = (bounds.right + padding).toInt().coerceAtMost(source.width)
-        val bottom = (bounds.bottom + padding).toInt().coerceAtMost(source.height)
+            val width = right - left
+            val height = bottom - top
 
-        val width = right - left
-        val height = bottom - top
+            if (width > 0 && height > 0) {
+                val croppedBitmap = createBitmap(width, height)
+                val canvas = Canvas(croppedBitmap)
 
-        if (width <= 0 || height <= 0) return source
+                canvas.drawColor(backgroundColor)
 
-        val croppedBitmap = createBitmap(width, height)
-        val canvas = Canvas(croppedBitmap)
+                val srcRect = android.graphics.Rect(left, top, right, bottom)
+                val dstRect = android.graphics.Rect(0, 0, width, height)
+                canvas.drawBitmap(source, srcRect, dstRect, null)
 
-        canvas.drawColor(backgroundColor)
-
-        val srcRect = android.graphics.Rect(left, top, right, bottom)
-        val dstRect = android.graphics.Rect(0, 0, width, height)
-        canvas.drawBitmap(source, srcRect, dstRect, null)
-
-        return croppedBitmap
+                croppedBitmap
+            } else {
+                source
+            }
+        } ?: source
     }
 }
-
