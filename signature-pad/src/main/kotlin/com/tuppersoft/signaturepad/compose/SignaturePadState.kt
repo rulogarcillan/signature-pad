@@ -10,14 +10,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
-import androidx.core.graphics.createBitmap
 import com.tuppersoft.signaturepad.compose.SignaturePadConfig.Companion.fountainPen
-import com.tuppersoft.signaturepad.export.SvgBuilder
+import com.tuppersoft.signaturepad.export.SignatureExporter
 import com.tuppersoft.signaturepad.geometry.Bezier
 import com.tuppersoft.signaturepad.geometry.TimedPoint
-import com.tuppersoft.signaturepad.rendering.drawBezierCurve
 
 /**
  * State holder for [SignaturePad] composable.
@@ -42,65 +39,50 @@ import com.tuppersoft.signaturepad.rendering.drawBezierCurve
 public class SignaturePadState {
 
     // ========================================
-    // Configuration
+    // Private Properties
     // ========================================
 
-    /** Current configuration (updated by SignaturePad composable). */
-    internal var config: SignaturePadConfig by mutableStateOf(fountainPen())
-
-    // ========================================
-    // Public State
-    // ========================================
-
-    /** Whether the signature is empty (no strokes drawn). */
-    public val isEmpty: Boolean by derivedStateOf { _strokes.isEmpty() }
-
-    /** Size of the SignaturePad layout in pixels. */
-    public var layoutSize: IntSize by mutableStateOf(IntSize.Zero)
-        private set
-
-    // ========================================
-    // Internal State
-    // ========================================
-
-    // Stroke collections
     private val _strokes = mutableStateListOf<Stroke>()
     private val _undoneStrokes = mutableStateListOf<Stroke>()
     private val _currentPoints = mutableStateListOf<TimedPoint>()
     private val _currentCurves = mutableStateListOf<StrokeCurve>()
 
+    private var _lastVelocity by mutableFloatStateOf(0f)
+    private var _lastWidth by mutableFloatStateOf(0f)
+
+    private var layoutSize: IntSize by mutableStateOf(IntSize.Zero)
+
+    private val exporter by lazy { SignatureExporter() }
+
+    // ========================================
+    // Public Properties
+    // ========================================
+
+    /** Whether the signature is empty (no strokes drawn). */
+    public val isEmpty: Boolean by derivedStateOf { _strokes.isEmpty() }
+
+    // ========================================
+    // Internal Properties
+    // ========================================
+
+    /** Current configuration (updated by SignaturePad composable). */
+    internal var config: SignaturePadConfig by mutableStateOf(fountainPen())
+
     internal val strokes: List<Stroke> = _strokes
     internal val currentPoints: List<TimedPoint> = _currentPoints
     internal val currentCurves: List<StrokeCurve> = _currentCurves
 
-    // Drawing state
-    private var _lastVelocity by mutableFloatStateOf(0f)
-    private var _lastWidth by mutableFloatStateOf(0f)
-
     internal val lastVelocity: Float get() = _lastVelocity
     internal val lastWidth: Float get() = _lastWidth
 
-    // Export builder (lazy)
-    private val svgBuilder by lazy { SvgBuilder() }
-
     // ========================================
-    // Public Operations
+    // Public Functions
     // ========================================
 
-    /**
-     * Checks if an UNDO operation is possible.
-     */
     public fun canUndo(): Boolean = _strokes.isNotEmpty()
 
-    /**
-     * Checks if a REDO operation is possible.
-     */
     public fun canRedo(): Boolean = _undoneStrokes.isNotEmpty()
 
-    /**
-     * Undoes the last stroke.
-     * @return `true` if successful.
-     */
     public fun undo(): Boolean {
         if (!canUndo()) return false
         val lastStroke = _strokes.removeAt(_strokes.lastIndex)
@@ -108,10 +90,6 @@ public class SignaturePadState {
         return true
     }
 
-    /**
-     * Redoes the last undone stroke.
-     * @return `true` if successful.
-     */
     public fun redo(): Boolean {
         if (!canRedo()) return false
         val stroke = _undoneStrokes.removeAt(_undoneStrokes.lastIndex)
@@ -119,7 +97,6 @@ public class SignaturePadState {
         return true
     }
 
-    /** Clears all strokes and resets the state. */
     public fun clear() {
         _strokes.clear()
         _undoneStrokes.clear()
@@ -129,50 +106,38 @@ public class SignaturePadState {
         _lastWidth = 0f
     }
 
-    // ========================================
-    // Export Operations
-    // ========================================
-
-    /**
-     * Exports the signature as an SVG string.
-     * Uses [layoutSize] for viewport dimensions.
-     */
     public fun toSvg(): String {
-        svgBuilder.clear()
-        _strokes.forEach { stroke ->
-            stroke.curves.forEach { curve ->
-                svgBuilder.append(
-                    curve = curve.bezier,
-                    strokeWidth = (curve.startWidth + curve.endWidth) / 2f
-                )
-            }
-        }
-        return svgBuilder.build(width = layoutSize.width, height = layoutSize.height)
+        return exporter.toSvg(strokes = _strokes, size = layoutSize)
     }
 
-    /** Exports the signature as a Bitmap with white background. */
-    public fun toBitmap(): android.graphics.Bitmap {
-        val bitmap = createBitmap(layoutSize.width, layoutSize.height)
-        val canvas = android.graphics.Canvas(bitmap)
-
-        canvas.drawColor(android.graphics.Color.WHITE)
-        renderStrokesToCanvas(canvas)
-
-        return bitmap
+    public fun toBitmap(
+        crop: Boolean = false,
+        paddingCrop: Int = 0
+    ): android.graphics.Bitmap {
+        return exporter.toBitmap(
+            strokes = _strokes,
+            size = layoutSize,
+            penColor = config.penColor,
+            crop = crop,
+            paddingCrop = paddingCrop
+        )
     }
 
-    /** Exports the signature as a Bitmap with transparent background. */
-    public fun toTransparentBitmap(): android.graphics.Bitmap {
-        val bitmap = createBitmap(layoutSize.width, layoutSize.height)
-        val canvas = android.graphics.Canvas(bitmap)
-
-        renderStrokesToCanvas(canvas)
-
-        return bitmap
+    public fun toTransparentBitmap(
+        crop: Boolean = false,
+        paddingCrop: Int = 0
+    ): android.graphics.Bitmap {
+        return exporter.toTransparentBitmap(
+            strokes = _strokes,
+            size = layoutSize,
+            penColor = config.penColor,
+            crop = crop,
+            paddingCrop = paddingCrop
+        )
     }
 
     // ========================================
-    // Internal Operations
+    // Internal Functions
     // ========================================
 
     internal fun updateLayoutSize(size: IntSize) {
@@ -210,47 +175,15 @@ public class SignaturePadState {
         _currentPoints.clear()
         _currentCurves.clear()
     }
-
-    // ========================================
-    // Private Helpers
-    // ========================================
-
-    private fun renderStrokesToCanvas(canvas: android.graphics.Canvas) {
-        val paint = android.graphics.Paint().apply {
-            isAntiAlias = true
-            style = android.graphics.Paint.Style.STROKE
-            strokeCap = android.graphics.Paint.Cap.ROUND
-            strokeJoin = android.graphics.Paint.Join.ROUND
-            color = config.penColor.toArgb()
-        }
-
-        _strokes.forEach { stroke ->
-            stroke.curves.forEach { curve ->
-                drawBezierCurve(
-                    canvas = canvas,
-                    paint = paint,
-                    curve = curve.bezier,
-                    startWidth = curve.startWidth,
-                    endWidth = curve.endWidth
-                )
-            }
-        }
-    }
 }
 
-/**
- * Represents a single stroke (continuous line drawn without lifting).
- * A stroke consists of one or more Bézier curves.
- */
+/** A single stroke (continuous line without lifting). */
 @Immutable
 internal data class Stroke(
     val curves: List<StrokeCurve>
 )
 
-/**
- * Represents a single Bézier curve segment within a stroke.
- * Width varies based on drawing velocity for natural appearance.
- */
+/** A Bézier curve segment with variable width. */
 @Immutable
 internal data class StrokeCurve(
     val bezier: Bezier,
