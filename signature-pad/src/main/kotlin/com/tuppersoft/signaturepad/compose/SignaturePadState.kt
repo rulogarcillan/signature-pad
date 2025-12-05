@@ -25,7 +25,7 @@ import com.tuppersoft.signaturepad.export.SvgBuilder
 import com.tuppersoft.signaturepad.geometry.Bezier
 import com.tuppersoft.signaturepad.geometry.TimedPoint
 import com.tuppersoft.signaturepad.rendering.drawBezierCurve
-import kotlin.math.max
+import kotlin.math.pow
 
 /**
  * State holder for [SignaturePad] composable.
@@ -64,6 +64,18 @@ import kotlin.math.max
  * @param penColor Stroke color, default is [Color.Black].
  * @param velocityFilterWeight Weight for velocity smoothing (0.0-1.0), default is 0.9.
  *        Higher values make stroke width changes smoother.
+ * @param widthFilterWeight Weight for width smoothing (0.0-1.0), default is 0.7.
+ *        Controls the inertia of ink flow for smoother width transitions.
+ * @param minVelocity Minimum velocity threshold in pixels per millisecond, default is 0.
+ *        Drawing slower than this uses maximum width.
+ * @param maxVelocity Maximum velocity threshold in pixels per millisecond, default is 10.
+ *        Drawing faster than this uses minimum width.
+ * @param pressureGamma Gamma curve factor for pressure simulation (0.5-3.0), default is 1.5.
+ *        Controls non-linearity of pressure response. 1.0 = linear, 1.5 = natural.
+ * @param inputNoiseThreshold Minimum distance in pixels between points, default is 1.0.
+ *        Points closer than this are filtered to reduce input noise.
+ * @param enableInkBleed Enable ink bleed effect at stroke end, default is false.
+ *        When true, draws a blob when pen stops slowly, simulating ink bleeding.
  */
 @Stable
 public class SignaturePadState(
@@ -71,6 +83,12 @@ public class SignaturePadState(
     penMaxWidth: Dp = PenMaxWidth,
     penColor: Color = PenColor,
     @FloatRange(from = 0.0, to = 1.0) velocityFilterWeight: Float = VelocityFilterWeight,
+    @FloatRange(from = 0.0, to = 1.0) widthFilterWeight: Float = WidthFilterWeight,
+    @FloatRange(from = 0.0) minVelocity: Float = MinVelocity,
+    @FloatRange(from = 0.0) maxVelocity: Float = MaxVelocity,
+    @FloatRange(from = 0.5, to = 3.0) pressureGamma: Float = PressureGamma,
+    @FloatRange(from = 0.0) inputNoiseThreshold: Float = InputNoiseThreshold,
+    enableInkBleed: Boolean = false,
 ) {
     /**
      * Minimum stroke width in dp.
@@ -105,6 +123,85 @@ public class SignaturePadState(
      * Default: 0.9
      */
     public var velocityFilterWeight: Float by mutableFloatStateOf(value = velocityFilterWeight)
+
+    /**
+     * Width filter weight (0.0-1.0).
+     *
+     * Controls the smoothing of width transitions, simulating ink flow inertia.
+     * Higher values (0.7-0.8) create smoother, more gradual width changes.
+     * Lower values (0.5-0.6) make width more responsive to velocity changes.
+     *
+     * This is critical for natural-looking strokes, as it prevents abrupt
+     * changes in line thickness when drawing speed varies.
+     *
+     * Valid range: 0.0 (no smoothing) to 1.0 (maximum smoothing).
+     * Default: 0.7
+     */
+    public var widthFilterWeight: Float by mutableFloatStateOf(value = widthFilterWeight)
+
+    /**
+     * Minimum velocity threshold in pixels per millisecond.
+     *
+     * Drawing slower than this velocity will use maximum pen width.
+     * Used for normalizing velocity to the [0, 1] range.
+     *
+     * Valid range: >= 0.0
+     * Default: 0.0
+     */
+    public var minVelocity: Float by mutableFloatStateOf(value = minVelocity)
+
+    /**
+     * Maximum velocity threshold in pixels per millisecond.
+     *
+     * Drawing faster than this velocity will use minimum pen width.
+     * Used for normalizing velocity to the [0, 1] range.
+     *
+     * Valid range: >= 0.0
+     * Default: 10.0
+     */
+    public var maxVelocity: Float by mutableFloatStateOf(value = maxVelocity)
+
+    /**
+     * Pressure gamma factor for non-linear pressure response (0.5-3.0).
+     *
+     * Controls the curvature of the pressure-to-width mapping:
+     * - 1.0 = Linear response (pressure proportional to width)
+     * - 1.5 = Natural, smooth response (recommended for most use cases)
+     * - 2.0 = Pronounced pressure effect (more dramatic width variation)
+     *
+     * The gamma curve is applied as: pressure^gamma, where pressure is
+     * the normalized inverse velocity [0, 1].
+     *
+     * Valid range: 0.5 to 3.0
+     * Default: 1.5
+     */
+    public var pressureGamma: Float by mutableFloatStateOf(value = pressureGamma)
+
+    /**
+     * Input noise threshold in pixels.
+     *
+     * Minimum distance between consecutive input points. Points closer than
+     * this threshold are filtered out to reduce sensor noise and jitter.
+     *
+     * Typical values:
+     * - 0.5-1.0 for high-precision input (stylus)
+     * - 1.0-2.0 for touch input (finger)
+     *
+     * Valid range: >= 0.0
+     * Default: 1.0
+     */
+    public var inputNoiseThreshold: Float by mutableFloatStateOf(value = inputNoiseThreshold)
+
+    /**
+     * Enable ink bleed effect when stroke ends at low velocity.
+     *
+     * When true and the pen stops slowly (velocity < 0.5 px/ms), a circular
+     * blob is drawn at the final position to simulate ink bleeding on paper.
+     * This adds realism for fountain pen and similar writing instruments.
+     *
+     * Default: false
+     */
+    public var enableInkBleed: Boolean by mutableStateOf(value = enableInkBleed)
 
     /**
      * Whether the signature is empty (no strokes drawn).
@@ -465,22 +562,62 @@ public class SignaturePadState(
     }
 
     /**
-     * Calculates stroke width based on drawing velocity (internal use).
+     * Calculates stroke width based on drawing velocity using normalized pressure model.
      *
-     * The stroke width varies inversely with velocity - faster movements
-     * produce thinner strokes, slower movements produce thicker strokes.
+     * This function implements the stylographic pen model with the following steps:
+     * 1. Normalize velocity to [0, 1] range using [minVelocity] and [maxVelocity] thresholds
+     * 2. Calculate simulated pressure as inverse of normalized velocity
+     * 3. Apply gamma curve for non-linear response using [pressureGamma]
+     * 4. Map the result to the width range [minWidthPx, maxWidthPx]
      *
-     * @param velocity Current drawing velocity.
-     * @param minWidthPx Minimum stroke width in pixels.
-     * @param maxWidthPx Maximum stroke width in pixels.
-     * @return Calculated stroke width in pixels, clamped between min and max.
+     * Mathematical formula:
+     * ```
+     * v_norm = clamp((v - v_min) / (v_max - v_min), 0, 1)
+     * ρ_sim = 1 - v_norm                    // Inverse: slow = high pressure
+     * ρ_gamma = ρ_sim^γ                     // Apply gamma curve
+     * W = W_min + (W_max - W_min) · ρ_gamma // Map to width range
+     * ```
+     *
+     * Physical interpretation:
+     * - When velocity ≈ 0 (pen stopped) → pressure = 1.0 → width = maximum (ink pools)
+     * - When velocity = max (fast stroke) → pressure = 0.0 → width = minimum (light touch)
+     *
+     * @param velocity Current drawing velocity in pixels per millisecond.
+     * @param minWidthPx Minimum stroke width in pixels (used at high velocity).
+     * @param maxWidthPx Maximum stroke width in pixels (used at low velocity).
+     * @return Calculated stroke width in pixels, smoothly varying with velocity.
+     *
+     * @see pressureGamma For controlling the non-linearity of the response curve.
+     * @see minVelocity For setting the slow velocity threshold.
+     * @see maxVelocity For setting the fast velocity threshold.
      */
     internal fun calculateStrokeWidth(
         velocity: Float,
         minWidthPx: Float,
         maxWidthPx: Float
     ): Float {
-        return max(a = maxWidthPx / (velocity + 1f), b = minWidthPx)
+        // Step 1: Normalize velocity to [0, 1] range
+        val velocityRange = maxVelocity - minVelocity
+        val normalizedVelocity = if (velocityRange > 0f) {
+            ((velocity - minVelocity) / velocityRange).coerceIn(0f, 1f)
+        } else {
+            // Edge case: if min and max velocities are equal, use mid-pressure
+            0.5f
+        }
+
+        // Step 2: Calculate simulated pressure (inverse of velocity)
+        // When velocity is 0 (stopped) → pressure = 1.0 (maximum width)
+        // When velocity is max (fast) → pressure = 0.0 (minimum width)
+        val simulatedPressure = 1f - normalizedVelocity
+
+        // Step 3: Apply gamma curve for non-linear response
+        // gamma = 1.0 → linear response
+        // gamma > 1.0 → more gradual pressure build-up (natural feel)
+        // gamma < 1.0 → more abrupt pressure changes
+        val pressureWithGamma = simulatedPressure.pow(pressureGamma)
+
+        // Step 4: Map pressure to width range
+        return minWidthPx + (maxWidthPx - minWidthPx) * pressureWithGamma
     }
 }
 
@@ -575,7 +712,13 @@ public fun rememberSignaturePadState(
             penMinWidth = signaturePadConfig.penMinWidth,
             penMaxWidth = signaturePadConfig.penMaxWidth,
             penColor = signaturePadConfig.penColor,
-            velocityFilterWeight = signaturePadConfig.velocityFilterWeight
+            velocityFilterWeight = signaturePadConfig.velocityFilterWeight,
+            widthFilterWeight = signaturePadConfig.widthFilterWeight,
+            minVelocity = signaturePadConfig.minVelocity,
+            maxVelocity = signaturePadConfig.maxVelocity,
+            pressureGamma = signaturePadConfig.pressureGamma,
+            inputNoiseThreshold = signaturePadConfig.inputNoiseThreshold,
+            enableInkBleed = signaturePadConfig.enableInkBleed
         )
     }
 }
@@ -604,8 +747,26 @@ public fun rememberSignaturePadState(
  * @property penMinWidth Minimum stroke width when drawing fast.
  * @property penMaxWidth Maximum stroke width when drawing slowly.
  * @property penColor Color of the drawn strokes.
- * @property velocityFilterWeight Smoothing factor (0.0-1.0).
+ * @property velocityFilterWeight Smoothing factor for velocity (0.0-1.0).
  *           Higher = smoother (0.8-0.95), Lower = more responsive (0.4-0.6).
+ * @property widthFilterWeight Smoothing factor for width transitions (0.0-1.0).
+ *           Controls the inertia of ink flow. Higher values (0.7-0.8) create smoother
+ *           width changes, while lower values (0.5-0.6) are more responsive.
+ * @property minVelocity Minimum velocity threshold in pixels per millisecond.
+ *           Drawing slower than this will use maximum width. Default is 0.
+ * @property maxVelocity Maximum velocity threshold in pixels per millisecond.
+ *           Drawing faster than this will use minimum width. Default is 10.
+ * @property pressureGamma Gamma curve factor for pressure simulation (0.5-3.0).
+ *           Controls the non-linearity of the pressure response curve.
+ *           - 1.0 = Linear response
+ *           - 1.5 = Natural, smooth response (recommended)
+ *           - 2.0 = Very pronounced pressure effect
+ * @property inputNoiseThreshold Minimum distance in pixels between consecutive points.
+ *           Points closer than this threshold will be filtered out to reduce input noise.
+ *           Typical values: 0.5-2.0 pixels. Default is 1.0.
+ * @property enableInkBleed Enable ink bleed effect when stroke ends at low velocity.
+ *           When true, a circular blob is drawn at the end point if the pen stops slowly,
+ *           simulating real ink bleeding on paper. Default is false.
  */
 @Immutable
 public data class SignaturePadConfig(
@@ -613,6 +774,12 @@ public data class SignaturePadConfig(
     val penMaxWidth: Dp = PenMaxWidth,
     val penColor: Color = PenColor,
     @FloatRange(from = 0.0, to = 1.0) val velocityFilterWeight: Float = VelocityFilterWeight,
+    @FloatRange(from = 0.0, to = 1.0) val widthFilterWeight: Float = WidthFilterWeight,
+    @FloatRange(from = 0.0) val minVelocity: Float = MinVelocity,
+    @FloatRange(from = 0.0) val maxVelocity: Float = MaxVelocity,
+    @FloatRange(from = 0.5, to = 3.0) val pressureGamma: Float = PressureGamma,
+    @FloatRange(from = 0.0) val inputNoiseThreshold: Float = InputNoiseThreshold,
+    val enableInkBleed: Boolean = false,
 ) {
 
     /**
@@ -632,7 +799,13 @@ public data class SignaturePadConfig(
             penMinWidth = penMinWidth,
             penMaxWidth = penMaxWidth,
             penColor = penColor,
-            velocityFilterWeight = velocityFilterWeight
+            velocityFilterWeight = velocityFilterWeight,
+            widthFilterWeight = widthFilterWeight,
+            minVelocity = minVelocity,
+            maxVelocity = maxVelocity,
+            pressureGamma = pressureGamma,
+            inputNoiseThreshold = inputNoiseThreshold,
+            enableInkBleed = enableInkBleed
         )
     }
 
@@ -643,12 +816,19 @@ public data class SignaturePadConfig(
         /**
          * Fountain pen: elegant with moderate contrast (1-4.5dp, smoothing 0.85).
          * Best for elegant signatures and formal documents.
+         * Features natural pressure response and ink bleed effect.
          */
         public fun fountainPen(penColor: Color = PenColor): SignaturePadConfig {
             return SignaturePadConfig(
                 penMinWidth = 1.0.dp,
                 penMaxWidth = 4.5.dp,
                 velocityFilterWeight = 0.85f,
+                widthFilterWeight = 0.7f,
+                minVelocity = 0f,
+                maxVelocity = 8f,
+                pressureGamma = 1.5f,
+                inputNoiseThreshold = 0.8f,
+                enableInkBleed = true,
                 penColor = penColor
             )
         }
@@ -656,12 +836,19 @@ public data class SignaturePadConfig(
         /**
          * BIC pen: uniform and consistent (2-2.5dp, smoothing 0.95).
          * Best for everyday signatures and forms.
+         * Minimal width variation for consistent lines.
          */
         public fun bicPen(penColor: Color = PenColor): SignaturePadConfig {
             return SignaturePadConfig(
                 penMinWidth = 2.dp,
                 penMaxWidth = 2.5.dp,
                 velocityFilterWeight = 0.95f,
+                widthFilterWeight = 0.8f,
+                minVelocity = 0f,
+                maxVelocity = 12f,
+                pressureGamma = 1.0f,
+                inputNoiseThreshold = 1.0f,
+                enableInkBleed = false,
                 penColor = penColor
             )
         }
@@ -669,12 +856,19 @@ public data class SignaturePadConfig(
         /**
          * Marker: thick and uniform (3-4dp, smoothing 0.92).
          * Best for bold signatures and emphasis.
+         * Medium width variation with smooth transitions.
          */
         public fun marker(penColor: Color = PenColor): SignaturePadConfig {
             return SignaturePadConfig(
                 penMinWidth = 3.dp,
                 penMaxWidth = 4.dp,
                 velocityFilterWeight = 0.92f,
+                widthFilterWeight = 0.85f,
+                minVelocity = 0f,
+                maxVelocity = 15f,
+                pressureGamma = 1.2f,
+                inputNoiseThreshold = 1.2f,
+                enableInkBleed = false,
                 penColor = penColor
             )
         }
@@ -682,12 +876,19 @@ public data class SignaturePadConfig(
         /**
          * Edding marker: very bold (5-6.5dp, smoothing 0.93).
          * Best for maximum visibility and industrial use.
+         * High width smoothing for stable, bold lines.
          */
         public fun edding(penColor: Color = PenColor): SignaturePadConfig {
             return SignaturePadConfig(
                 penMinWidth = 5.dp,
                 penMaxWidth = 6.5.dp,
                 velocityFilterWeight = 0.93f,
+                widthFilterWeight = 0.88f,
+                minVelocity = 0f,
+                maxVelocity = 18f,
+                pressureGamma = 1.1f,
+                inputNoiseThreshold = 1.5f,
+                enableInkBleed = false,
                 penColor = penColor
             )
         }
@@ -713,3 +914,34 @@ private val PenColor: Color = Color.Black
  * Default velocity filter weight.
  */
 private const val VelocityFilterWeight: Float = 0.9f
+
+/**
+ * Default width filter weight.
+ * Controls smoothing of width transitions (ink flow inertia).
+ */
+private const val WidthFilterWeight: Float = 0.7f
+
+/**
+ * Default minimum velocity threshold in pixels per millisecond.
+ * Drawing slower than this uses maximum width.
+ */
+private const val MinVelocity: Float = 0f
+
+/**
+ * Default maximum velocity threshold in pixels per millisecond.
+ * Drawing faster than this uses minimum width.
+ */
+private const val MaxVelocity: Float = 10f
+
+/**
+ * Default pressure gamma factor.
+ * 1.5 provides a natural, smooth pressure response curve.
+ */
+private const val PressureGamma: Float = 1.5f
+
+/**
+ * Default input noise threshold in pixels.
+ * Points closer than this are filtered out to reduce sensor noise.
+ */
+private const val InputNoiseThreshold: Float = 1.0f
+

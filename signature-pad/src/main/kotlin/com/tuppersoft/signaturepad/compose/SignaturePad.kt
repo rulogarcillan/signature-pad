@@ -30,6 +30,7 @@ import com.tuppersoft.signaturepad.geometry.ControlTimedPoints
 import com.tuppersoft.signaturepad.geometry.TimedPoint
 import com.tuppersoft.signaturepad.geometry.calculateControlPoints
 import com.tuppersoft.signaturepad.rendering.drawBezierCurve
+import kotlin.math.sqrt
 
 /**
  * A Composable for capturing smooth signature drawings with Bézier curve interpolation.
@@ -245,6 +246,39 @@ private suspend fun PointerInputScope.handleSignatureGestures(
             )
         },
         onDragEnd = {
+            // Ink bleed effect: draw a blob if pen stopped slowly
+            if (state.enableInkBleed && state.currentPoints.size >= 2) {
+                val lastPoint = state.currentPoints.last()
+                val prevPoint = state.currentPoints[state.currentPoints.lastIndex - 1]
+                val finalVelocity = lastPoint.velocityFrom(prevPoint)
+
+                // Threshold for considering "stopped" (slow velocity)
+                val bleedVelocityThreshold = 0.5f
+
+                if (finalVelocity < bleedVelocityThreshold) {
+                    signatureBitmap()?.let { bitmap ->
+                        val canvas = Canvas(bitmap)
+
+                        // Save original style
+                        val originalStyle = paint.style
+
+                        // Draw circular blob to simulate ink bleeding
+                        paint.style = Paint.Style.FILL
+                        val bleedRadius = penMaxWidthPx / 2f
+                        canvas.drawCircle(
+                            lastPoint.x,
+                            lastPoint.y,
+                            bleedRadius,
+                            paint
+                        )
+
+                        // Restore original style
+                        paint.style = originalStyle
+                        onDrawVersionIncrement()
+                    }
+                }
+            }
+
             if (state.currentCurves.isNotEmpty()) {
                 state.addStroke(Stroke(curves = state.currentCurves.toList()))
             }
@@ -268,6 +302,20 @@ private fun handleDragEvent(
     onDrawVersionIncrement: () -> Unit
 ) {
     val point = TimedPoint(change.position.x, change.position.y)
+
+    // Filter input noise - discard points too close to the last point
+    if (state.currentPoints.isNotEmpty()) {
+        val lastPoint = state.currentPoints.last()
+        val dx = point.x - lastPoint.x
+        val dy = point.y - lastPoint.y
+        val distance = sqrt(dx * dx + dy * dy)
+
+        // If point is closer than threshold, it's likely sensor noise - discard it
+        if (distance < state.inputNoiseThreshold) {
+            return
+        }
+    }
+
     state.addCurrentPoint(point)
 
     val pointsCount = state.currentPoints.size
@@ -334,11 +382,22 @@ private fun processBezierCurve(
     velocity = state.velocityFilterWeight * velocity +
             (1 - state.velocityFilterWeight) * state.lastVelocity
 
-    val newWidth = state.calculateStrokeWidth(
+    // Calculate target width based on filtered velocity
+    val targetWidth = state.calculateStrokeWidth(
         velocity,
         penMinWidthPx,
         penMaxWidthPx
     )
+
+    // Apply EMA filter to width for smoother transitions (ink flow inertia)
+    val newWidth = if (state.lastWidth > 0f) {
+        // Smooth transition from previous width
+        state.widthFilterWeight * targetWidth +
+        (1 - state.widthFilterWeight) * state.lastWidth
+    } else {
+        // First sample, use target width directly
+        targetWidth
+    }
 
     state.addCurrentCurve(
         StrokeCurve(
