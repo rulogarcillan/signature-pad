@@ -246,38 +246,6 @@ private suspend fun PointerInputScope.handleSignatureGestures(
             )
         },
         onDragEnd = {
-            // Ink bleed effect: draw a blob if pen stopped slowly
-            if (state.enableInkBleed && state.currentPoints.size >= 2) {
-                val lastPoint = state.currentPoints.last()
-                val prevPoint = state.currentPoints[state.currentPoints.lastIndex - 1]
-                val finalVelocity = lastPoint.velocityFrom(prevPoint)
-
-                // Threshold for considering "stopped" (slow velocity)
-                val bleedVelocityThreshold = 0.5f
-
-                if (finalVelocity < bleedVelocityThreshold) {
-                    signatureBitmap()?.let { bitmap ->
-                        val canvas = Canvas(bitmap)
-
-                        // Save original style
-                        val originalStyle = paint.style
-
-                        // Draw circular blob to simulate ink bleeding
-                        paint.style = Paint.Style.FILL
-                        val bleedRadius = penMaxWidthPx / 2f
-                        canvas.drawCircle(
-                            lastPoint.x,
-                            lastPoint.y,
-                            bleedRadius,
-                            paint
-                        )
-
-                        // Restore original style
-                        paint.style = originalStyle
-                        onDrawVersionIncrement()
-                    }
-                }
-            }
 
             if (state.currentCurves.isNotEmpty()) {
                 state.addStroke(Stroke(curves = state.currentCurves.toList()))

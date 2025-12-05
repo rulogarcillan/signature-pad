@@ -74,8 +74,6 @@ import kotlin.math.pow
  *        Controls non-linearity of pressure response. 1.0 = linear, 1.5 = natural.
  * @param inputNoiseThreshold Minimum distance in pixels between points, default is 1.0.
  *        Points closer than this are filtered to reduce input noise.
- * @param enableInkBleed Enable ink bleed effect at stroke end, default is false.
- *        When true, draws a blob when pen stops slowly, simulating ink bleeding.
  */
 @Stable
 public class SignaturePadState(
@@ -88,7 +86,6 @@ public class SignaturePadState(
     @FloatRange(from = 0.0) maxVelocity: Float = MaxVelocity,
     @FloatRange(from = 0.5, to = 3.0) pressureGamma: Float = PressureGamma,
     @FloatRange(from = 0.0) inputNoiseThreshold: Float = InputNoiseThreshold,
-    enableInkBleed: Boolean = false,
 ) {
     /**
      * Minimum stroke width in dp.
@@ -192,16 +189,6 @@ public class SignaturePadState(
      */
     public var inputNoiseThreshold: Float by mutableFloatStateOf(value = inputNoiseThreshold)
 
-    /**
-     * Enable ink bleed effect when stroke ends at low velocity.
-     *
-     * When true and the pen stops slowly (velocity < 0.5 px/ms), a circular
-     * blob is drawn at the final position to simulate ink bleeding on paper.
-     * This adds realism for fountain pen and similar writing instruments.
-     *
-     * Default: false
-     */
-    public var enableInkBleed: Boolean by mutableStateOf(value = enableInkBleed)
 
     /**
      * Whether the signature is empty (no strokes drawn).
@@ -717,8 +704,7 @@ public fun rememberSignaturePadState(
             minVelocity = signaturePadConfig.minVelocity,
             maxVelocity = signaturePadConfig.maxVelocity,
             pressureGamma = signaturePadConfig.pressureGamma,
-            inputNoiseThreshold = signaturePadConfig.inputNoiseThreshold,
-            enableInkBleed = signaturePadConfig.enableInkBleed
+            inputNoiseThreshold = signaturePadConfig.inputNoiseThreshold
         )
     }
 }
@@ -764,9 +750,6 @@ public fun rememberSignaturePadState(
  * @property inputNoiseThreshold Minimum distance in pixels between consecutive points.
  *           Points closer than this threshold will be filtered out to reduce input noise.
  *           Typical values: 0.5-2.0 pixels. Default is 1.0.
- * @property enableInkBleed Enable ink bleed effect when stroke ends at low velocity.
- *           When true, a circular blob is drawn at the end point if the pen stops slowly,
- *           simulating real ink bleeding on paper. Default is false.
  */
 @Immutable
 public data class SignaturePadConfig(
@@ -779,7 +762,6 @@ public data class SignaturePadConfig(
     @FloatRange(from = 0.0) val maxVelocity: Float = MaxVelocity,
     @FloatRange(from = 0.5, to = 3.0) val pressureGamma: Float = PressureGamma,
     @FloatRange(from = 0.0) val inputNoiseThreshold: Float = InputNoiseThreshold,
-    val enableInkBleed: Boolean = false,
 ) {
 
     /**
@@ -804,8 +786,7 @@ public data class SignaturePadConfig(
             minVelocity = minVelocity,
             maxVelocity = maxVelocity,
             pressureGamma = pressureGamma,
-            inputNoiseThreshold = inputNoiseThreshold,
-            enableInkBleed = enableInkBleed
+            inputNoiseThreshold = inputNoiseThreshold
         )
     }
 
@@ -816,7 +797,7 @@ public data class SignaturePadConfig(
         /**
          * Fountain pen: elegant with moderate contrast (1-4.5dp, smoothing 0.85).
          * Best for elegant signatures and formal documents.
-         * Features natural pressure response and ink bleed effect.
+         * Features natural pressure response.
          */
         public fun fountainPen(penColor: Color = PenColor): SignaturePadConfig {
             return SignaturePadConfig(
@@ -828,7 +809,6 @@ public data class SignaturePadConfig(
                 maxVelocity = 8f,
                 pressureGamma = 1.5f,
                 inputNoiseThreshold = 0.8f,
-                enableInkBleed = true,
                 penColor = penColor
             )
         }
@@ -848,7 +828,6 @@ public data class SignaturePadConfig(
                 maxVelocity = 12f,
                 pressureGamma = 1.0f,
                 inputNoiseThreshold = 1.0f,
-                enableInkBleed = false,
                 penColor = penColor
             )
         }
@@ -868,7 +847,6 @@ public data class SignaturePadConfig(
                 maxVelocity = 15f,
                 pressureGamma = 1.2f,
                 inputNoiseThreshold = 1.2f,
-                enableInkBleed = false,
                 penColor = penColor
             )
         }
@@ -888,7 +866,6 @@ public data class SignaturePadConfig(
                 maxVelocity = 18f,
                 pressureGamma = 1.1f,
                 inputNoiseThreshold = 1.5f,
-                enableInkBleed = false,
                 penColor = penColor
             )
         }
