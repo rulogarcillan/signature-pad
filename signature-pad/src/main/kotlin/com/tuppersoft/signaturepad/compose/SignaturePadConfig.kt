@@ -63,18 +63,20 @@ public data class SignaturePadConfig(
         }
 
         /**
-         * Pen: uniform and consistent (2-2.5dp).
+         * Pen: nearly uniform with subtle ink accumulation in curves (1.8-2.8dp).
+         * Simulates real ballpoint pen behavior: consistent width but slightly thicker
+         * in curves and direction changes where ink accumulates.
          * Best for everyday signatures and forms.
          */
         public fun pen(penColor: Color = DefaultPenColor): SignaturePadConfig {
             return SignaturePadConfig(
-                penMinWidth = 2.dp,
-                penMaxWidth = 2.5.dp,
+                penMinWidth = 1.8.dp,
+                penMaxWidth = 2.8.dp,
                 velocitySmoothness = 0.95f,
                 widthSmoothness = 0.8f,
                 minVelocity = 0f,
-                maxVelocity = 12f,
-                widthVariation = 1.0f,
+                maxVelocity = 8f,
+                widthVariation = 1.2f,
                 inputNoiseThreshold = 1.0f,
                 penColor = penColor
             )

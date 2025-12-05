@@ -63,14 +63,14 @@ fun SignatureScreen() {
 ### Writing Instrument Presets
 
 ```kotlin
-// Fountain Pen (1-4.5dp) - Elegant, variable width
+// Fountain Pen (1-4dp) - Elegant, variable width
 SignaturePad(config = SignaturePadConfig.fountainPen())
 
-// Pen (2-2.5dp) - Uniform, consistent
-SignaturePad(config = SignaturePadConfig.bicPen())
+// BIC Pen (1.8-2.8dp) - Nearly uniform with subtle ink accumulation
+SignaturePad(config = SignaturePadConfig.pen())
 
 // Marker (5-7dp) - Bold, thick strokes
-SignaturePad(config = SignaturePadConfig.edding())
+SignaturePad(config = SignaturePadConfig.marker())
 ```
 
 ### Custom Configuration

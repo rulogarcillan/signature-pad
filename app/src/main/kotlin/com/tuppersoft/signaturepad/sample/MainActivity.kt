@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
@@ -30,17 +28,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.tuppersoft.signaturepad.compose.SignaturePadConfig
 import com.tuppersoft.signaturepad.compose.rememberSignaturePadState
 import com.tuppersoft.signaturepad.sample.theme.AndroidSignaturepadTheme
 import com.tuppersoft.signaturepad.compose.SignaturePad as SignaturePadCompose
@@ -60,23 +53,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class PenPreset(val displayName: String) {
-    FOUNTAIN_PEN("Fountain Pen"),
-    BIC_PEN("BIC Pen"),
-    MARKER("Marker")
-}
-
 @Suppress("LongMethod")
 @Composable
 private fun SignaturePadComposeVersion() {
     val state = rememberSignaturePadState()
-    var selectedPreset by remember { mutableStateOf(PenPreset.FOUNTAIN_PEN) }
-
-    val config = when (selectedPreset) {
-        PenPreset.FOUNTAIN_PEN -> SignaturePadConfig.fountainPen()
-        PenPreset.BIC_PEN -> SignaturePadConfig.pen()
-        PenPreset.MARKER -> SignaturePadConfig.marker()
-    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -151,26 +131,8 @@ private fun SignaturePadComposeVersion() {
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Selector de presets
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                PenPreset.entries.forEach { preset ->
-                    PresetChip(
-                        text = preset.displayName,
-                        selected = preset == selectedPreset,
-                        onClick = { selectedPreset = preset },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
             SignaturePadCompose(
                 state = state,
-                config = config,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -200,33 +162,5 @@ private fun SignaturePadComposeVersion() {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun PresetChip(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(36.dp)
-            .background(
-                color = if (selected) Color(0xFF003D82) else Color(0xFFF5F5F5),
-                shape = RoundedCornerShape(18.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) Color.White else Color(0xFF666666),
-            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-            textAlign = TextAlign.Center
-        )
     }
 }
