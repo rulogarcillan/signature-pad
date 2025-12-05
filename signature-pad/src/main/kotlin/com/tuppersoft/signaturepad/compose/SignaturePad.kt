@@ -44,6 +44,7 @@ import kotlin.math.sqrt
  *
  * SignaturePad(
  *     state = state,
+ *     config = SignaturePadConfig.fountainPen(penColor = Color.Blue),
  *     modifier = Modifier.fillMaxWidth().height(300.dp)
  * )
  *
@@ -54,6 +55,7 @@ import kotlin.math.sqrt
  * ```
  *
  * @param state The state holder for this signature pad.
+ * @param config The configuration for pen behavior and appearance.
  * @param modifier The modifier to be applied to this signature pad.
  * @param onStartSign Called when the user starts signing.
  * @param onSign Called when the signature is updated.
@@ -61,19 +63,24 @@ import kotlin.math.sqrt
  */
 @Composable
 public fun SignaturePad(
-    state: SignaturePadState,
     modifier: Modifier = Modifier,
+    state: SignaturePadState = rememberSignaturePadState(),
+    config: SignaturePadConfig = SignaturePadConfig.fountainPen(),
     onStartSign: () -> Unit = {},
     onSign: () -> Unit = {},
     onClear: () -> Unit = {}
 ) {
+    LaunchedEffect(config) {
+        state.config = config
+    }
+
     val density = LocalDensity.current
     var size by remember { mutableStateOf(IntSize.Zero) }
     var signatureBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var drawVersion by remember { mutableIntStateOf(0) }
-    val penMinWidthPx by remember { derivedStateOf { with(density) { state.penMinWidth.toPx() } } }
-    val penMaxWidthPx by remember { derivedStateOf { with(density) { state.penMaxWidth.toPx() } } }
-    val paint = rememberSignaturePaint(penColor = state.penColor)
+    val penMinWidthPx by remember { derivedStateOf { with(density) { state.config.penMinWidth.toPx() } } }
+    val penMaxWidthPx by remember { derivedStateOf { with(density) { state.config.penMaxWidth.toPx() } } }
+    val paint = rememberSignaturePaint(penColor = state.config.penColor)
     val controlTimedPoints = remember { ControlTimedPoints() }
     val bezierCache = remember { Bezier() }
 
@@ -116,7 +123,6 @@ public fun SignaturePad(
             }
     ) {
         if (drawVersion >= 0) {
-
             signatureBitmap?.let { bitmap ->
                 drawIntoCanvas { canvas ->
                     canvas.nativeCanvas.drawBitmap(bitmap, 0f, 0f, null)
@@ -125,7 +131,6 @@ public fun SignaturePad(
         }
     }
 }
-
 
 /**
  * Creates and remembers a Paint object configured for signature drawing.
@@ -190,7 +195,7 @@ private fun RedrawStrokesEffect(
     val strokesVersion by remember { derivedStateOf { state.strokes.size } }
     val currentOnBitmapUpdate by rememberUpdatedState(newValue = onBitmapUpdate)
 
-    LaunchedEffect(strokesVersion, size, state.penColor) {
+    LaunchedEffect(strokesVersion, size, state.config.penColor) {
         if (size.width > 0 && size.height > 0) {
             val bitmap = createBitmap(size.width, size.height)
             val canvas = Canvas(bitmap)
@@ -246,7 +251,6 @@ private suspend fun PointerInputScope.handleSignatureGestures(
             )
         },
         onDragEnd = {
-
             if (state.currentCurves.isNotEmpty()) {
                 state.addStroke(Stroke(curves = state.currentCurves.toList()))
             }
@@ -271,15 +275,13 @@ private fun handleDragEvent(
 ) {
     val point = TimedPoint(change.position.x, change.position.y)
 
-    // Filter input noise - discard points too close to the last point
     if (state.currentPoints.isNotEmpty()) {
         val lastPoint = state.currentPoints.last()
         val dx = point.x - lastPoint.x
         val dy = point.y - lastPoint.y
         val distance = sqrt(dx * dx + dy * dy)
 
-        // If point is closer than threshold, it's likely sensor noise - discard it
-        if (distance < state.inputNoiseThreshold) {
+        if (distance < state.config.inputNoiseThreshold) {
             return
         }
     }
@@ -309,7 +311,7 @@ private fun handleDragEvent(
 }
 
 /**
- * Processes and draws a Bézier curve for the current stroke.
+ * Processes a Bézier curve segment based on the current points.
  */
 private fun processBezierCurve(
     state: SignaturePadState,
@@ -321,52 +323,56 @@ private fun processBezierCurve(
     signatureBitmap: () -> Bitmap?,
     onDrawVersionIncrement: () -> Unit
 ) {
-    val tmp1 = calculateControlPoints(
+    // Calculate control points for first segment
+    val firstSegmentControls = calculateControlPoints(
         state.currentPoints[0],
         state.currentPoints[1],
         state.currentPoints[2],
         controlPointsCache
     )
-    val c2 = tmp1.c2
+    val firstControlPoint = firstSegmentControls.c2
 
-    val tmp2 = calculateControlPoints(
+    // Calculate control points for second segment
+    val secondSegmentControls = calculateControlPoints(
         state.currentPoints[1],
         state.currentPoints[2],
         state.currentPoints[3],
         controlPointsCache
     )
-    val c3 = tmp2.c1
+    val secondControlPoint = secondSegmentControls.c1
 
+    // Create Bézier curve from control points
     val curve = bezierCache.set(
         state.currentPoints[1],
-        c2,
-        c3,
+        firstControlPoint,
+        secondControlPoint,
         state.currentPoints[2]
     )
 
-    var velocity = curve.endPoint.velocityFrom(curve.startPoint)
-    velocity = if (velocity.isNaN()) 0f else velocity
+    // Calculate raw velocity
+    val rawVelocity = curve.endPoint.velocityFrom(curve.startPoint)
+    val sanitizedVelocity = if (rawVelocity.isNaN()) 0f else rawVelocity
 
-    velocity = state.velocityFilterWeight * velocity +
-            (1 - state.velocityFilterWeight) * state.lastVelocity
+    // Apply EMA smoothing to velocity
+    val smoothedVelocity = state.config.velocityFilterWeight * sanitizedVelocity +
+        (1 - state.config.velocityFilterWeight) * state.lastVelocity
 
-    // Calculate target width based on filtered velocity
-    val targetWidth = state.calculateStrokeWidth(
-        velocity,
+    // Calculate target stroke width based on velocity
+    val targetStrokeWidth = state.config.calculateStrokeWidth(
+        smoothedVelocity,
         penMinWidthPx,
         penMaxWidthPx
     )
 
-    // Apply EMA filter to width for smoother transitions (ink flow inertia)
-    val newWidth = if (state.lastWidth > 0f) {
-        // Smooth transition from previous width
-        state.widthFilterWeight * targetWidth +
-        (1 - state.widthFilterWeight) * state.lastWidth
+    // Apply EMA smoothing to width (ink flow inertia)
+    val smoothedStrokeWidth = if (state.lastWidth > 0f) {
+        state.config.widthFilterWeight * targetStrokeWidth +
+            (1 - state.config.widthFilterWeight) * state.lastWidth
     } else {
-        // First sample, use target width directly
-        targetWidth
+        targetStrokeWidth
     }
 
+    // Add curve to current stroke
     state.addCurrentCurve(
         StrokeCurve(
             bezier = Bezier().set(
@@ -376,10 +382,11 @@ private fun processBezierCurve(
                 curve.endPoint
             ),
             startWidth = state.lastWidth,
-            endWidth = newWidth
+            endWidth = smoothedStrokeWidth
         )
     )
 
+    // Draw curve to bitmap
     signatureBitmap()?.let { bitmap ->
         val canvas = Canvas(bitmap)
         drawBezierCurve(
@@ -387,12 +394,13 @@ private fun processBezierCurve(
             paint = paint,
             curve = curve,
             startWidth = state.lastWidth,
-            endWidth = newWidth
+            endWidth = smoothedStrokeWidth
         )
         onDrawVersionIncrement()
     }
 
-    state.updateVelocity(velocity)
-    state.updateWidth(newWidth)
+    // Update state with new values
+    state.updateVelocity(smoothedVelocity)
+    state.updateWidth(smoothedStrokeWidth)
     state.removeFirstCurrentPoint()
 }

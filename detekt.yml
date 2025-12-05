@@ -31,9 +31,19 @@ comments:
   UndocumentedPublicClass:
     active: true
     excludes: ['**/app/**', '**/sample/**']
+    searchInNestedClass: false
+    searchInInnerClass: false
+    searchInInnerObject: false
+    searchInProtectedClass: false
   UndocumentedPublicFunction:
     active: true
     excludes: ['**/app/**', '**/sample/**']
+  UndocumentedPublicProperty:
+    active: false
+  CommentOverPrivateFunction:
+    active: false
+  CommentOverPrivateProperty:
+    active: false
 
 complexity:
   active: true

@@ -40,35 +40,46 @@ public fun calculateControlPoints(
     s3: TimedPoint,
     cache: ControlTimedPoints
 ): ControlTimedPoints {
-    // Calculate vectors between consecutive points
-    val dx1: Float = s1.x - s2.x
-    val dy1: Float = s1.y - s2.y
-    val dx2: Float = s2.x - s3.x
-    val dy2: Float = s2.y - s3.y
-    // Calculate midpoints of segments
-    val m1X: Float = (s1.x + s2.x) / 2f
-    val m1Y: Float = (s1.y + s2.y) / 2f
-    val m2X: Float = (s2.x + s3.x) / 2f
-    val m2Y: Float = (s2.y + s3.y) / 2f
-    // Calculate segment lengths for weighting
-    val l1: Float = sqrt(x = dx1 * dx1 + dy1 * dy1)
-    val l2: Float = sqrt(x = dx2 * dx2 + dy2 * dy2)
-    // Calculate vectors between midpoints
-    val dxm: Float = m1X - m2X
-    val dym: Float = m1Y - m2Y
-    // Weight factor based on segment length ratio
-    // This ensures that short and long segments blend smoothly
-    var k: Float = l2 / (l1 + l2)
-    if (k.isNaN()) k = 0f
+    // Calculate direction vectors between consecutive points
+    val deltaX1 = s1.x - s2.x
+    val deltaY1 = s1.y - s2.y
+    val deltaX2 = s2.x - s3.x
+    val deltaY2 = s2.y - s3.y
+
+    // Calculate midpoints of each segment
+    val midpoint1X = (s1.x + s2.x) / 2f
+    val midpoint1Y = (s1.y + s2.y) / 2f
+    val midpoint2X = (s2.x + s3.x) / 2f
+    val midpoint2Y = (s2.y + s3.y) / 2f
+
+    // Calculate length of each segment for adaptive weighting
+    val length1 = sqrt(deltaX1 * deltaX1 + deltaY1 * deltaY1)
+    val length2 = sqrt(deltaX2 * deltaX2 + deltaY2 * deltaY2)
+
+    // Calculate vector between the two midpoints
+    val midpointsDeltaX = midpoint1X - midpoint2X
+    val midpointsDeltaY = midpoint1Y - midpoint2Y
+
+    // Calculate weight factor based on segment length ratio
+    // This ensures smooth blending between short and long segments
+    val totalLength = length1 + length2
+    val weight = if (totalLength > 0f) {
+        length2 / totalLength
+    } else {
+        0f
+    }
+
     // Calculate weighted center point
-    val cmX: Float = m2X + dxm * k
-    val cmY: Float = m2Y + dym * k
-    // Calculate translation to make tangent pass through s2
-    val tx: Float = s2.x - cmX
-    val ty: Float = s2.y - cmY
-    // Generate control points by translating midpoints
+    val centerX = midpoint2X + midpointsDeltaX * weight
+    val centerY = midpoint2Y + midpointsDeltaY * weight
+
+    // Calculate translation vector to align tangent through s2
+    val translationX = s2.x - centerX
+    val translationY = s2.y - centerY
+
+    // Generate control points by applying translation to midpoints
     return cache.set(
-        c1 = TimedPoint(x = m1X + tx, y = m1Y + ty),
-        c2 = TimedPoint(x = m2X + tx, y = m2Y + ty)
+        c1 = TimedPoint(x = midpoint1X + translationX, y = midpoint1Y + translationY),
+        c2 = TimedPoint(x = midpoint2X + translationX, y = midpoint2Y + translationY)
     )
 }
