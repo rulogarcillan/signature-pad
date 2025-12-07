@@ -1,8 +1,5 @@
 package com.tuppersoft.signaturepad.compose
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.Composable
@@ -15,16 +12,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageBitmapConfig
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawImage
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
-import androidx.core.graphics.createBitmap
 import com.tuppersoft.signaturepad.geometry.Bezier
 import com.tuppersoft.signaturepad.geometry.ControlTimedPoints
 import com.tuppersoft.signaturepad.geometry.TimedPoint
@@ -76,7 +79,7 @@ public fun SignaturePad(
 
     val density = LocalDensity.current
     var size by remember { mutableStateOf(IntSize.Zero) }
-    var signatureBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var signatureBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var drawVersion by remember { mutableIntStateOf(0) }
     val penMinWidthPx by remember { derivedStateOf { with(density) { state.config.penMinWidth.toPx() } } }
     val penMaxWidthPx by remember { derivedStateOf { with(density) { state.config.penMaxWidth.toPx() } } }
@@ -105,7 +108,7 @@ public fun SignaturePad(
                 size = newSize
                 state.updateLayoutSize(newSize)
                 if (newSize.width > 0 && newSize.height > 0) {
-                    signatureBitmap = createBitmap(newSize.width, newSize.height)
+                    signatureBitmap = ImageBitmap(newSize.width, newSize.height, ImageBitmapConfig.Argb8888)
                 }
             }
             .pointerInput(penMinWidthPx, penMaxWidthPx) {
@@ -125,7 +128,7 @@ public fun SignaturePad(
         if (drawVersion >= 0) {
             signatureBitmap?.let { bitmap ->
                 drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawBitmap(bitmap, 0f, 0f, null)
+                    canvas.drawImage(bitmap, androidx.compose.ui.geometry.Offset.Zero, androidx.compose.ui.graphics.Paint())
                 }
             }
         }
@@ -140,14 +143,14 @@ private fun rememberSignaturePaint(penColor: Color): Paint {
     val paint = remember {
         Paint().apply {
             isAntiAlias = true
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-            strokeJoin = Paint.Join.ROUND
+            style = PaintingStyle.Stroke
+            strokeCap = StrokeCap.Round
+            strokeJoin = StrokeJoin.Round
         }
     }
 
     LaunchedEffect(penColor) {
-        paint.color = penColor.toArgb()
+        paint.color = penColor
     }
 
     return paint
@@ -190,14 +193,14 @@ private fun RedrawStrokesEffect(
     state: SignaturePadState,
     size: IntSize,
     paint: Paint,
-    onBitmapUpdate: (Bitmap) -> Unit
+    onBitmapUpdate: (ImageBitmap) -> Unit
 ) {
     val strokesVersion by remember { derivedStateOf { state.strokes.size } }
     val currentOnBitmapUpdate by rememberUpdatedState(newValue = onBitmapUpdate)
 
     LaunchedEffect(strokesVersion, size, state.config.penColor) {
         if (size.width > 0 && size.height > 0) {
-            val bitmap = createBitmap(size.width, size.height)
+            val bitmap = ImageBitmap(size.width, size.height, ImageBitmapConfig.Argb8888)
             val canvas = Canvas(bitmap)
 
             state.strokes.forEach { stroke ->
@@ -227,7 +230,7 @@ private suspend fun PointerInputScope.handleSignatureGestures(
     penMaxWidthPx: Float,
     controlPointsCache: ControlTimedPoints,
     bezierCache: Bezier,
-    signatureBitmap: () -> Bitmap?,
+    signatureBitmap: () -> ImageBitmap?,
     onDrawVersionIncrement: () -> Unit,
     onStartSign: () -> Unit
 ) {
@@ -264,13 +267,13 @@ private suspend fun PointerInputScope.handleSignatureGestures(
  */
 private fun handleDragEvent(
     state: SignaturePadState,
-    change: androidx.compose.ui.input.pointer.PointerInputChange,
+    change: PointerInputChange,
     paint: Paint,
     penMinWidthPx: Float,
     penMaxWidthPx: Float,
     controlPointsCache: ControlTimedPoints,
     bezierCache: Bezier,
-    signatureBitmap: () -> Bitmap?,
+    signatureBitmap: () -> ImageBitmap?,
     onDrawVersionIncrement: () -> Unit
 ) {
     val point = TimedPoint(change.position.x, change.position.y)
@@ -320,7 +323,7 @@ private fun processBezierCurve(
     penMaxWidthPx: Float,
     controlPointsCache: ControlTimedPoints,
     bezierCache: Bezier,
-    signatureBitmap: () -> Bitmap?,
+    signatureBitmap: () -> ImageBitmap?,
     onDrawVersionIncrement: () -> Unit
 ) {
     // Calculate control points for first segment

@@ -1,6 +1,5 @@
 package com.tuppersoft.signaturepad.compose
 
-import androidx.annotation.FloatRange
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -35,12 +34,12 @@ public data class SignaturePadConfig(
     val penMinWidth: Dp = DefaultPenMinWidth,
     val penMaxWidth: Dp = DefaultPenMaxWidth,
     val penColor: Color = DefaultPenColor,
-    @FloatRange(from = 0.0, to = 1.0) val velocitySmoothness: Float = DefaultVelocitySmoothness,
-    @FloatRange(from = 0.0, to = 1.0) val widthSmoothness: Float = DefaultWidthSmoothness,
-    @FloatRange(from = 0.0) val minVelocity: Float = DefaultMinVelocity,
-    @FloatRange(from = 0.0) val maxVelocity: Float = DefaultMaxVelocity,
-    @FloatRange(from = 0.5, to = 3.0) val widthVariation: Float = DefaultWidthVariation,
-    @FloatRange(from = 0.0) val inputNoiseThreshold: Float = DefaultInputNoiseThreshold,
+    val velocitySmoothness: Float = DefaultVelocitySmoothness,
+    val widthSmoothness: Float = DefaultWidthSmoothness,
+    val minVelocity: Float = DefaultMinVelocity,
+    val maxVelocity: Float = DefaultMaxVelocity,
+    val widthVariation: Float = DefaultWidthVariation,
+    val inputNoiseThreshold: Float = DefaultInputNoiseThreshold,
 ) {
 
     public companion object {

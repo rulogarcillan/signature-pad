@@ -136,7 +136,7 @@ public class SignaturePadState {
     public fun toBitmap(
         crop: Boolean = false,
         paddingCrop: Int = 0
-    ): android.graphics.Bitmap {
+    ): androidx.compose.ui.graphics.ImageBitmap {
         return exporter.toBitmap(
             strokes = _strokes,
             size = layoutSize,
@@ -156,7 +156,7 @@ public class SignaturePadState {
     public fun toTransparentBitmap(
         crop: Boolean = false,
         paddingCrop: Int = 0
-    ): android.graphics.Bitmap {
+    ): androidx.compose.ui.graphics.ImageBitmap {
         return exporter.toTransparentBitmap(
             strokes = _strokes,
             size = layoutSize,
