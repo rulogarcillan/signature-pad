@@ -1,3 +1,5 @@
+package com.tuppersoft.signaturepad.geometry
+
 import kotlinx.datetime.Clock
 import kotlin.math.sqrt
 

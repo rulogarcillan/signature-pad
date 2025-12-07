@@ -355,7 +355,7 @@ private fun processBezierCurve(
 
     // Apply EMA smoothing to velocity
     val smoothedVelocity = state.config.velocitySmoothness * sanitizedVelocity +
-        (1 - state.config.velocitySmoothness) * state.lastVelocity
+            (1 - state.config.velocitySmoothness) * state.lastVelocity
 
     // Calculate target stroke width based on velocity
     val targetStrokeWidth = state.config.calculateStrokeWidth(
@@ -367,7 +367,7 @@ private fun processBezierCurve(
     // Apply EMA smoothing to width (ink flow inertia)
     val smoothedStrokeWidth = if (state.lastWidth > 0f) {
         state.config.widthSmoothness * targetStrokeWidth +
-            (1 - state.config.widthSmoothness) * state.lastWidth
+                (1 - state.config.widthSmoothness) * state.lastWidth
     } else {
         targetStrokeWidth
     }
