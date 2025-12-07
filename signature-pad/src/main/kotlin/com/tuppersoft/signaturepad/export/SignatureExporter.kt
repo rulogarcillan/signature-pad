@@ -1,14 +1,20 @@
 package com.tuppersoft.signaturepad.export
 
-import android.graphics.Canvas
-import android.graphics.Paint
-import androidx.annotation.Px
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageBitmapConfig
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PaintingStyle
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.unit.IntSize
-import androidx.core.graphics.createBitmap
 import com.tuppersoft.signaturepad.compose.Stroke
 import com.tuppersoft.signaturepad.rendering.drawBezierCurve
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Exports signature strokes to various formats (Bitmap, SVG).
@@ -34,19 +40,16 @@ internal class SignatureExporter {
         size: IntSize,
         penColor: Color,
         crop: Boolean = false,
-        @Px paddingCrop: Int = 0
-    ): android.graphics.Bitmap {
-        val fullBitmap = createBitmap(size.width, size.height)
-        val canvas = Canvas(fullBitmap)
-
-        canvas.drawColor(android.graphics.Color.WHITE)
-        renderStrokesToCanvas(canvas, strokes, penColor)
-
-        return if (crop && strokes.isNotEmpty()) {
-            cropBitmap(fullBitmap, strokes, paddingCrop, android.graphics.Color.WHITE)
-        } else {
-            fullBitmap
-        }
+        paddingCrop: Int = 0
+    ): ImageBitmap {
+        return renderBitmap(
+            strokes = strokes,
+            size = size,
+            penColor = penColor,
+            backgroundColor = Color.White,
+            crop = crop,
+            paddingCrop = paddingCrop
+        )
     }
 
     /**
@@ -57,18 +60,16 @@ internal class SignatureExporter {
         size: IntSize,
         penColor: Color,
         crop: Boolean = false,
-        @Px paddingCrop: Int = 0
-    ): android.graphics.Bitmap {
-        val fullBitmap = createBitmap(size.width, size.height)
-        val canvas = Canvas(fullBitmap)
-
-        renderStrokesToCanvas(canvas, strokes, penColor)
-
-        return if (crop && strokes.isNotEmpty()) {
-            cropBitmap(fullBitmap, strokes, paddingCrop, android.graphics.Color.TRANSPARENT)
-        } else {
-            fullBitmap
-        }
+        paddingCrop: Int = 0
+    ): ImageBitmap {
+        return renderBitmap(
+            strokes = strokes,
+            size = size,
+            penColor = penColor,
+            backgroundColor = Color.Transparent,
+            crop = crop,
+            paddingCrop = paddingCrop
+        )
     }
 
     /**
@@ -92,6 +93,53 @@ internal class SignatureExporter {
         return svgBuilder.build(width = size.width, height = size.height)
     }
 
+    private fun renderBitmap(
+        strokes: List<Stroke>,
+        size: IntSize,
+        penColor: Color,
+        backgroundColor: Color,
+        crop: Boolean,
+        paddingCrop: Int
+    ): ImageBitmap {
+        // 1. Calculate the effective bounds (either full size or cropped content)
+        val bounds: Rect = if (crop && strokes.isNotEmpty()) {
+            calculateSignatureBounds(strokes, paddingCrop, size)
+        } else {
+            Rect(0f, 0f, size.width.toFloat(), size.height.toFloat())
+        }
+
+        // 2. Safely determine dimensions (avoid <= 0)
+        val width = max(1, bounds.width.roundToInt())
+        val height = max(1, bounds.height.roundToInt())
+
+        // 3. Create the target bitmap
+        val imageBitmap = ImageBitmap(width, height, ImageBitmapConfig.Argb8888)
+        val canvas = Canvas(imageBitmap)
+
+        // 4. Draw Background
+        val bgPaint = Paint().apply { color = backgroundColor }
+        canvas.drawRect(
+            left = 0f,
+            top = 0f,
+            right = width.toFloat(),
+            bottom = height.toFloat(),
+            paint = bgPaint
+        )
+
+        // 5. Apply translation if we are cropping (moving the origin)
+        canvas.save()
+        if (crop) {
+            canvas.translate(-bounds.left, -bounds.top)
+        }
+
+        // 6. Reuse rendering logic
+        renderStrokesToCanvas(canvas, strokes, penColor)
+
+        canvas.restore()
+
+        return imageBitmap
+    }
+
     private fun renderStrokesToCanvas(
         canvas: Canvas,
         strokes: List<Stroke>,
@@ -99,10 +147,10 @@ internal class SignatureExporter {
     ) {
         val paint = Paint().apply {
             isAntiAlias = true
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-            strokeJoin = Paint.Join.ROUND
-            color = penColor.toArgb()
+            style = PaintingStyle.Stroke
+            strokeCap = StrokeCap.Round
+            strokeJoin = StrokeJoin.Round
+            color = penColor
         }
 
         strokes.forEach { stroke ->
@@ -118,8 +166,12 @@ internal class SignatureExporter {
         }
     }
 
-    private fun calculateSignatureBounds(strokes: List<Stroke>): android.graphics.RectF? {
-        if (strokes.isEmpty()) return null
+    private fun calculateSignatureBounds(
+        strokes: List<Stroke>,
+        padding: Int,
+        maxSize: IntSize
+    ): Rect {
+        if (strokes.isEmpty()) return Rect.Zero
 
         var minX = Float.MAX_VALUE
         var minY = Float.MAX_VALUE
@@ -128,7 +180,7 @@ internal class SignatureExporter {
 
         strokes.forEach { stroke ->
             stroke.curves.forEach { curve ->
-                val maxStrokeWidth = maxOf(curve.startWidth, curve.endWidth)
+                val maxStrokeWidth = max(curve.startWidth, curve.endWidth)
 
                 listOf(
                     curve.bezier.startPoint,
@@ -136,46 +188,20 @@ internal class SignatureExporter {
                     curve.bezier.control2,
                     curve.bezier.endPoint
                 ).forEach { point ->
-                    minX = minOf(minX, point.x - maxStrokeWidth / 2)
-                    minY = minOf(minY, point.y - maxStrokeWidth / 2)
-                    maxX = maxOf(maxX, point.x + maxStrokeWidth / 2)
-                    maxY = maxOf(maxY, point.y + maxStrokeWidth / 2)
+                    minX = min(minX, point.x - maxStrokeWidth / 2)
+                    minY = min(minY, point.y - maxStrokeWidth / 2)
+                    maxX = max(maxX, point.x + maxStrokeWidth / 2)
+                    maxY = max(maxY, point.y + maxStrokeWidth / 2)
                 }
             }
         }
 
-        return android.graphics.RectF(minX, minY, maxX, maxY)
-    }
+        // Apply padding and clamp to max size
+        val left = (minX - padding).coerceAtLeast(0f)
+        val top = (minY - padding).coerceAtLeast(0f)
+        val right = (maxX + padding).coerceAtMost(maxSize.width.toFloat())
+        val bottom = (maxY + padding).coerceAtMost(maxSize.height.toFloat())
 
-    private fun cropBitmap(
-        source: android.graphics.Bitmap,
-        strokes: List<Stroke>,
-        @Px padding: Int,
-        backgroundColor: Int
-    ): android.graphics.Bitmap {
-        return calculateSignatureBounds(strokes)?.let { bounds ->
-            val left = (bounds.left - padding).toInt().coerceAtLeast(0)
-            val top = (bounds.top - padding).toInt().coerceAtLeast(0)
-            val right = (bounds.right + padding).toInt().coerceAtMost(source.width)
-            val bottom = (bounds.bottom + padding).toInt().coerceAtMost(source.height)
-
-            val width = right - left
-            val height = bottom - top
-
-            if (width > 0 && height > 0) {
-                val croppedBitmap = createBitmap(width, height)
-                val canvas = Canvas(croppedBitmap)
-
-                canvas.drawColor(backgroundColor)
-
-                val srcRect = android.graphics.Rect(left, top, right, bottom)
-                val dstRect = android.graphics.Rect(0, 0, width, height)
-                canvas.drawBitmap(source, srcRect, dstRect, null)
-
-                croppedBitmap
-            } else {
-                source
-            }
-        } ?: source
+        return Rect(left, top, right, bottom)
     }
 }
