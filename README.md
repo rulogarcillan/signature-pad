@@ -1,13 +1,13 @@
-# Android Signature Pad - Jetpack Compose
+# Compose Multiplatform Signature Pad
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20Desktop-brightgreen.svg)](https://kotlinlang.org/docs/multiplatform.html)
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-purple.svg)](https://kotlinlang.org)
 
-A modern **Jetpack Compose** library for capturing smooth signature drawings with **UNDO/REDO** functionality. 
+A modern **Compose Multiplatform** library for capturing smooth signature drawings with **UNDO/REDO** functionality. Supports **Android** and **Desktop (JVM)**.
 
-Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin with Compose-first architecture.
+Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin for KMP.
 
 <p align="center">
   <img src="ART/sign.gif" alt="Signature Pad Demo"/>
@@ -140,17 +140,17 @@ SignaturePad(
 
 ## Configuration Parameters
 
-| Parameter | Type | Range | Default | User Question | Description |
-|-----------|------|-------|---------|---------------|-------------|
-| `penMinWidth` | Dp | - | 1.0.dp | *"What's the thinnest my line can be?"* | Minimum stroke width (fast drawing) |
-| `penMaxWidth` | Dp | - | 4.0.dp | *"What's the thickest my line can be?"* | Maximum stroke width (slow drawing) |
-| `penColor` | Color | - | Ink Blue (#003D82) | *"What color is my pen?"* | Stroke color |
-| `velocitySmoothness` | Float | 0.0-1.0 | 0.85 | *"How smooth should the drawing feel?"* | Stroke smoothness (0.0 = jumpy, 1.0 = very smooth) |
-| `widthSmoothness` | Float | 0.0-1.0 | 0.7 | *"How gradual should thickness changes be?"* | Width transition smoothness (0.0 = abrupt, 1.0 = gradual) |
-| `minVelocity` | Float | 0.0+ | 0.0 | *"When does the line stop getting thicker?"* | Velocity for maximum width (px/ms) |
-| `maxVelocity` | Float | 0.0+ | 8.0 | *"When does the line stop getting thinner?"* | Velocity for minimum width (px/ms) |
-| `widthVariation` | Float | 0.5-3.0 | 1.5 | *"How much should thickness vary with speed?"* | Width contrast (1.0 = linear, >1.0 = more contrast, <1.0 = less) |
-| `inputNoiseThreshold` | Float | 0.0+ | 0.8 | *"How much should I filter hand shake?"* | Min distance between points to filter tremor (px) |
+| Parameter             | Type  | Range   | Default            | User Question                                  | Description                                                      |
+| --------------------- | ----- | ------- | ------------------ | ---------------------------------------------- | ---------------------------------------------------------------- |
+| `penMinWidth`         | Dp    | -       | 1.0.dp             | *"What's the thinnest my line can be?"*        | Minimum stroke width (fast drawing)                              |
+| `penMaxWidth`         | Dp    | -       | 4.0.dp             | *"What's the thickest my line can be?"*        | Maximum stroke width (slow drawing)                              |
+| `penColor`            | Color | -       | Ink Blue (#003D82) | *"What color is my pen?"*                      | Stroke color                                                     |
+| `velocitySmoothness`  | Float | 0.0-1.0 | 0.85               | *"How smooth should the drawing feel?"*        | Stroke smoothness (0.0 = jumpy, 1.0 = very smooth)               |
+| `widthSmoothness`     | Float | 0.0-1.0 | 0.7                | *"How gradual should thickness changes be?"*   | Width transition smoothness (0.0 = abrupt, 1.0 = gradual)        |
+| `minVelocity`         | Float | 0.0+    | 0.0                | *"When does the line stop getting thicker?"*   | Velocity for maximum width (px/ms)                               |
+| `maxVelocity`         | Float | 0.0+    | 8.0                | *"When does the line stop getting thinner?"*   | Velocity for minimum width (px/ms)                               |
+| `widthVariation`      | Float | 0.5-3.0 | 1.5                | *"How much should thickness vary with speed?"* | Width contrast (1.0 = linear, >1.0 = more contrast, <1.0 = less) |
+| `inputNoiseThreshold` | Float | 0.0+    | 0.8                | *"How much should I filter hand shake?"*       | Min distance between points to filter tremor (px)                |
 
 ## License
 
