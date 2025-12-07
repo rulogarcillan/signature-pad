@@ -27,7 +27,11 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-                implementation(libs.androidx.compose.ui.tooling.preview)
+                implementation("org.jetbrains.compose.runtime:runtime-desktop:1.7.1")
+                implementation("org.jetbrains.compose.ui:ui-desktop:1.7.1")
+                implementation("org.jetbrains.compose.foundation:foundation-desktop:1.7.1")
+                implementation("org.jetbrains.compose.material3:material3-desktop:1.7.1")
+                implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.7.1")
             }
         }
     }

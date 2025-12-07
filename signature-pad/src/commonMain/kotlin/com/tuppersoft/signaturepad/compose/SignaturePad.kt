@@ -20,8 +20,6 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawImage
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
@@ -127,9 +125,10 @@ public fun SignaturePad(
     ) {
         if (drawVersion >= 0) {
             signatureBitmap?.let { bitmap ->
-                drawIntoCanvas { canvas ->
-                    canvas.drawImage(bitmap, androidx.compose.ui.geometry.Offset.Zero, androidx.compose.ui.graphics.Paint())
-                }
+                drawImage(
+                    image = bitmap,
+                    topLeft = androidx.compose.ui.geometry.Offset.Zero
+                )
             }
         }
     }

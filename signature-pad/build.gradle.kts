@@ -32,7 +32,8 @@ kotlin {
         }
         val desktopMain by getting {
              dependencies {
-                 implementation(libs.androidx.compose.ui.tooling.preview)
+                 implementation("org.jetbrains.compose.ui:ui-desktop:${libs.versions.composeMultiplatform.get()}")
+                 implementation("org.jetbrains.compose.material:material-desktop:${libs.versions.composeMultiplatform.get()}")
              }
         }
     }

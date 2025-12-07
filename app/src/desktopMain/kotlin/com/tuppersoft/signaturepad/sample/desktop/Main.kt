@@ -34,11 +34,11 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.tuppersoft.signaturepad.compose.SignaturePad
 import com.tuppersoft.signaturepad.compose.rememberSignaturePadState
-import com.tuppersoft.signaturepad.sample.theme.AndroidSignaturepadTheme
 
-fun main() = application {
+
+public fun main(): Unit = application {
     Window(onCloseRequest = ::exitApplication, title = "Signature Pad KMP Demo") {
-        AndroidSignaturepadTheme {
+        MaterialTheme {
             SignaturePadDesktop()
         }
     }
