@@ -1,7 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -10,19 +11,35 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
+                // Signature Pad library
                 implementation(projects.signaturePad)
+
+                // Compose Multiplatform
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+                implementation(compose.materialIconsExtended)
             }
         }
-        val androidMain by getting {
+
+        androidMain {
             dependencies {
-                // TODO
+                // Android-specific dependencies
+                implementation(compose.uiTooling)
+                implementation(compose.preview)
+                implementation(libs.activity.compose)
+                implementation(libs.core.ktx)
             }
         }
+
         val desktopMain by getting {
             dependencies {
-                // TODO
+                // Desktop-specific dependencies
+                implementation(compose.desktop.currentOs)
             }
         }
     }

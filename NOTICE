@@ -1,4 +1,4 @@
-Android Signature Pad - Kotlin Enhanced Fork
+Signature Pad KMP - Kotlin Multiplatform Library
 Copyright 2025 Tuppersoft by Rulo Garcillan
 
 This product is a derivative work based on Android Signature Pad:
@@ -19,9 +19,60 @@ limitations under the License.
 
 ---
 
-MODIFICATIONS:
+MAJOR MODIFICATIONS FROM ORIGINAL:
+
+Architecture & Platform:
 - Complete rewrite from Java to Kotlin
-- Added UNDO/REDO functionality
-- Modern architecture with immutable data structures
-- Jetpack Compose integration
-- Enhanced documentation with KDocs
+- Migrated to Kotlin Multiplatform (KMP) with Compose Multiplatform
+- Replaced Android View system with pure Compose UI
+- Replaced android.graphics.* APIs with androidx.compose.ui.graphics.*
+- 100% shared code in commonMain for all platforms
+- Cross-platform support: Android, Desktop (JVM), iOS (planned), Web (planned)
+
+Enhanced Drawing Engine:
+- Smooth Bézier Curves with Catmull-Rom spline interpolation
+- Velocity-Based Width: Dynamic stroke width (faster = thinner, slower = thicker)
+- Pressure Simulation: Gamma curve adjustment for realistic pen feel
+- Adaptive Smoothing: EMA (Exponential Moving Average) filters
+- Noise Filtering: Configurable input threshold for hand shake elimination
+
+Configuration & Customization:
+- 9 Adjustable Parameters:
+  * penMinWidth, penMaxWidth: Width range control
+  * penColor: Custom stroke colors
+  * velocitySmoothness: Drawing smoothness (0.0-1.0)
+  * widthSmoothness: Width transition smoothness (0.0-1.0)
+  * minVelocity, maxVelocity: Velocity thresholds for width mapping
+  * widthVariation: Pressure simulation curve (gamma)
+  * inputNoiseThreshold: Hand shake filter
+- 3 Pre-configured Presets: fountainPen(), pen(), marker()
+- Type-safe Configuration DSL with immutable data classes
+
+State Management & History:
+- Added full UNDO/REDO functionality with complete stroke history
+- State hoisting following Compose best practices
+- Immutable data structures throughout
+- Stroke-level history tracking (not point-level)
+
+Export & Output:
+- Multiple export formats: SVG, Bitmap (white/transparent background)
+- Smart auto-crop with configurable padding
+- ImageBitmap support for KMP compatibility
+- SVG path generation with optimized Bézier curves
+
+Code Quality & Safety:
+- Explicit API mode (-Xexplicit-api=strict) for type safety
+- Comprehensive KDocs on all public APIs
+- Consistent data class copy visibility
+- Zero platform dependencies in shared code
+
+PLATFORM TARGETS:
+- Android (API 21+)
+- Desktop JVM (Windows, macOS, Linux - Java 17+)
+- iOS (planned for v2.0)
+- Web/Wasm (planned for v2.0)
+
+DEPENDENCIES:
+- Kotlin 2.2.21
+- Compose Multiplatform 1.9.3
+- kotlinx-datetime 0.7.1

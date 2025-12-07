@@ -2,9 +2,10 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.vanniktech.maven.publish)
 }
+
 
 kotlin {
     androidTarget { 
@@ -77,14 +78,14 @@ mavenPublishing {
 
     coordinates(
         groupId = "com.tuppersoft",
-        artifactId = "signature-pad",
+        artifactId = "signature-pad",  // Maven Central auto-generates: signature-pad-android, signature-pad-jvm, etc.
         version = project.findProperty("version") as? String
             ?: error("The 'version' parameter has not been defined. Use -Pversion=...")
     )
 
     pom {
-        name.set("Signature Pad")
-        description.set("A simple Android library for capturing signatures using a touch screen for Jetpack Compose.")
+        name.set("Signature Pad KMP")
+        description.set("A Kotlin Multiplatform library for capturing smooth signatures with Bézier curves on Android, Desktop, iOS and Web using Compose Multiplatform.")
         inceptionYear.set("2025")
         url.set("https://github.com/rulogarcillan/signature-pad")
 
@@ -98,7 +99,7 @@ mavenPublishing {
 
         developers {
             developer {
-                id.set("Rulo Garcillan")
+                id.set("rulogarcillan")
                 name.set("Rulo Garcillan")
                 email.set("raulrcs@gmail.com")
             }
@@ -112,7 +113,7 @@ mavenPublishing {
         scm {
             url.set("https://github.com/rulogarcillan/signature-pad")
             connection.set("scm:git:git://github.com/rulogarcillan/signature-pad.git")
-            developerConnection.set("scm:git:ssh://github.com:rulogarcillan/signature-pad.git")
+            developerConnection.set("scm:git:ssh://git@github.com:rulogarcillan/signature-pad.git")
         }
 
         issueManagement {

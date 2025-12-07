@@ -21,10 +21,11 @@ subprojects {
         allRules = false
         config.setFrom(files("$rootDir/detekt.yml"))
 
-        // Excluir archivos generados y de prueba
+        // Source directories for KMP projects
         source.setFrom(
-            "src/main/java",
-            "src/main/kotlin"
+            "src/commonMain/kotlin",
+            "src/androidMain/kotlin",
+            "src/desktopMain/kotlin"
         )
 
         parallel = true
@@ -32,8 +33,8 @@ subprojects {
     }
 
     dependencies {
-        detektPlugins(rootProject.libs.detektFormatting)
-        detektPlugins(rootProject.libs.detektComposeRules)
+        detektPlugins(rootProject.libs.detekt.formatting)
+        detektPlugins(rootProject.libs.detekt.compose.rules)
     }
 }
 

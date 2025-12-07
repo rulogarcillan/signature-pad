@@ -1,16 +1,20 @@
 # ====================================
-# Versions Catalog - SignaturePad
+# Versions Catalog - SignaturePad KMP
 # ====================================
 
 [versions]
 # Build Tools
 agp = "8.13.1"
 kotlin = "2.2.21"
-composeMultiplatform = "1.7.1"
+composeMultiplatform = "1.9.3"
+
+# AndroidX
+activityCompose = "1.12.1"
+coreKtx = "1.17.0"
 
 # Code Quality
 detekt = "1.23.8"
-detektComposeRules = "0.4.23"
+detektComposeRules = "0.5.1"
 
 # KotlinX
 kotlinxDatetime = "0.7.1"
@@ -19,26 +23,24 @@ kotlinxDatetime = "0.7.1"
 junit = "4.13.2"
 
 # Publishing
-vanniktech-maven-publish = "0.34.0"
+vanniktech-maven-publish = "0.35.0"
 
 [libraries]
 # ====================================
-# Testing
+# AndroidX
 # ====================================
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-junit = { module = "junit:junit", version.ref = "junit" }
-
-# ====================================
-# Code Quality
-# ====================================
-detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
-detektComposeRules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 
 # ====================================
 # KotlinX
 # ====================================
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
-
+# ====================================
+# Code Quality (for Detekt)
+# ====================================
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+detekt-compose-rules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
 
 [plugins]
 # ====================================
@@ -46,10 +48,9 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 # ====================================
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 # Code Quality
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
