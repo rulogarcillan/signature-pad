@@ -49,7 +49,10 @@ public fun drawBezierCurve(
 ) {
     val originalStrokeWidth: Float = paint.strokeWidth
     val widthChange: Float = endWidth - startWidth
-    val numberOfSteps: Int = ceil(x = curve.length()).toInt()
+    // Increase sampling rate to 3 points per pixel to ensure smooth overlapping circles
+    // and prevent jagged "sawtooth" edges, especially on non-retina Desktop displays.
+    val stepsPerPixel = 3f
+    val numberOfSteps: Int = ceil(x = curve.length() * stepsPerPixel).toInt()
     repeat(times = numberOfSteps) { stepIndex ->
         val t: Float = stepIndex.toFloat() / numberOfSteps
         val tSquared: Float = t * t
