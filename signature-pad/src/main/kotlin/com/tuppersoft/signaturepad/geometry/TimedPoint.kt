@@ -1,5 +1,4 @@
-package com.tuppersoft.signaturepad.geometry
-
+import kotlinx.datetime.Clock
 import kotlin.math.sqrt
 
 /**
@@ -25,7 +24,7 @@ public data class TimedPoint(
      * moment this point was instantiated, which is essential for calculating drawing
      * velocity between consecutive points.
      */
-    private val timestamp: Long = System.currentTimeMillis()
+    private val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 
     /**
      * Calculates the velocity from a start point to this point.
