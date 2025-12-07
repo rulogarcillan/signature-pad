@@ -1,6 +1,7 @@
 package com.tuppersoft.signaturepad.export
 
 import com.tuppersoft.signaturepad.geometry.Bezier
+import kotlin.math.roundToInt
 
 /**
  * Builds a complete SVG document from multiple paths.
@@ -72,7 +73,7 @@ public class SvgBuilder {
      * @return This SvgBuilder instance for method chaining.
      */
     public fun append(curve: Bezier, strokeWidth: Float): SvgBuilder {
-        val roundedStrokeWidth: Int = Math.round(strokeWidth)
+        val roundedStrokeWidth: Int = strokeWidth.roundToInt()
         val curveStartSvgPoint = SvgPoint(point = curve.startPoint)
         val curveControlSvgPoint1 = SvgPoint(point = curve.control1)
         val curveControlSvgPoint2 = SvgPoint(point = curve.control2)

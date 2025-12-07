@@ -1,6 +1,7 @@
 package com.tuppersoft.signaturepad.export
 
 import com.tuppersoft.signaturepad.geometry.TimedPoint
+import kotlin.math.roundToInt
 
 /**
  * Represents a point as it would be in the generated SVG document.
@@ -24,8 +25,8 @@ public data class SvgPoint(
      * @param point The TimedPoint to convert to SVG coordinates.
      */
     public constructor(point: TimedPoint) : this(
-        x = Math.round(point.x),
-        y = Math.round(point.y)
+        x = point.x.roundToInt(),
+        y = point.y.roundToInt()
     )
 
     /**
