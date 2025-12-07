@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.multiplatform) // Changed from kotlin.android
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.vanniktech.maven.publish)
 }
@@ -15,26 +16,30 @@ kotlin {
     // Future: iosX64(), iosArm64(), iosSimulatorArm64()
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation(libs.androidx.compose.runtime)
-                implementation(libs.androidx.compose.ui)
-                implementation(libs.androidx.compose.foundation)
-                implementation(libs.androidx.compose.ui.graphics) // Critical for rendering
+                // Compose Multiplatform dependencies
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+
+                // KotlinX DateTime
                 implementation(libs.kotlinx.datetime)
             }
         }
-        val androidMain by getting {
+
+        androidMain {
             dependencies {
-                // Android specific dependencies if any
-                implementation(libs.androidx.core.ktx)
+                // Android-specific dependencies if needed
             }
         }
+
         val desktopMain by getting {
-             dependencies {
-                 implementation("org.jetbrains.compose.ui:ui-desktop:${libs.versions.composeMultiplatform.get()}")
-                 implementation("org.jetbrains.compose.material:material-desktop:${libs.versions.composeMultiplatform.get()}")
-             }
+            dependencies {
+                // Desktop-specific dependencies if needed
+            }
         }
     }
     

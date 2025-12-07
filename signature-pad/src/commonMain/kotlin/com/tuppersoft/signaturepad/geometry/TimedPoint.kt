@@ -1,7 +1,8 @@
 package com.tuppersoft.signaturepad.geometry
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.math.sqrt
+import kotlin.time.ExperimentalTime
 
 /**
  * Represents a point in time with x, y coordinates and an automatically captured timestamp.
@@ -26,6 +27,7 @@ public data class TimedPoint(
      * moment this point was instantiated, which is essential for calculating drawing
      * velocity between consecutive points.
      */
+    @OptIn(ExperimentalTime::class)
     private val timestamp: Long = Clock.System.now().toEpochMilliseconds()
 
     /**

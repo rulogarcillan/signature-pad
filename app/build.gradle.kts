@@ -6,32 +6,23 @@ plugins {
 
 kotlin {
     androidTarget()
-    
+
     jvm("desktop")
-    
+
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(libs.androidx.compose.runtime)
-                implementation(libs.androidx.compose.ui)
-                implementation(libs.androidx.compose.foundation)
-                implementation(libs.androidx.compose.material3)
-                implementation(libs.androidx.compose.material.icons.extended)
                 implementation(projects.signaturePad)
             }
         }
         val androidMain by getting {
             dependencies {
-                implementation(libs.androidx.activity.compose)
+                // TODO
             }
         }
         val desktopMain by getting {
             dependencies {
-                implementation("org.jetbrains.compose.runtime:runtime-desktop:1.7.1")
-                implementation("org.jetbrains.compose.ui:ui-desktop:1.7.1")
-                implementation("org.jetbrains.compose.foundation:foundation-desktop:1.7.1")
-                implementation("org.jetbrains.compose.material3:material3-desktop:1.7.1")
-                implementation("org.jetbrains.compose.material:material-icons-extended-desktop:1.7.1")
+                // TODO
             }
         }
     }
@@ -63,3 +54,16 @@ android {
         compose = true
     }
 }
+
+// Configure desktop run task
+tasks.register<JavaExec>("desktopRun") {
+    group = "application"
+    mainClass.set("com.tuppersoft.signaturepad.sample.desktop.MainKt")
+    kotlin.targets.getByName<org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget>("desktop").compilations.getByName(
+        "main"
+    ).let { compilation ->
+        dependsOn(compilation.compileAllTaskName)
+        classpath = compilation.output.allOutputs + compilation.compileDependencyFiles
+    }
+}
+
