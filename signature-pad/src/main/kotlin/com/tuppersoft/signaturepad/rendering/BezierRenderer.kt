@@ -1,8 +1,12 @@
 package com.tuppersoft.signaturepad.rendering
-import android.graphics.Canvas
-import android.graphics.Paint
+
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.PointMode
 import com.tuppersoft.signaturepad.geometry.Bezier
 import kotlin.math.ceil
+
 /**
  * Android-specific rendering utilities for Bézier curves.
  *
@@ -30,7 +34,7 @@ import kotlin.math.ceil
  * - P₁, P₂ are the control points
  * - P₃ is the end point
  *
- * @param canvas The Android canvas to draw on.
+ * @param canvas The Compose canvas to draw on.
  * @param paint The paint configuration (color, caps, joins, etc).
  * @param curve The Bézier curve to draw.
  * @param startWidth Width at the start of the curve in pixels.
@@ -63,7 +67,11 @@ public fun drawBezierCurve(
             tCubed * curve.endPoint.y
         val currentStrokeWidth: Float = startWidth + tCubed * widthChange
         paint.strokeWidth = currentStrokeWidth
-        canvas.drawPoint(pointX, pointY, paint)
+        canvas.drawPoints(
+            pointMode = PointMode.Points,
+            points = listOf(Offset(pointX, pointY)),
+            paint = paint
+        )
     }
     paint.strokeWidth = originalStrokeWidth
 }
