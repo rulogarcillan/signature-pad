@@ -12,6 +12,9 @@ import kotlin.math.pow
  * Encapsulates stroke width, color, and smoothing parameters with preset
  * configurations for common writing instruments.
  *
+ * All numeric parameters are validated at initialization time using `require()` checks,
+ * ensuring type-safe configuration across all platforms (KMP replacement for Android's `@FloatRange`).
+ *
  * Available presets: [fountainPen], [pen], [marker]
  *
  * Example:
@@ -19,15 +22,17 @@ import kotlin.math.pow
  * val config = SignaturePadConfig.fountainPen(penColor = Color.Blue)
  * ```
  *
- * @property penMinWidth Minimum stroke width when drawing fast. *"What's the thinnest my line can be?"*
- * @property penMaxWidth Maximum stroke width when drawing slowly. *"What's the thickest my line can be?"*
+ * @property penMinWidth Minimum stroke width when drawing fast. Must be > 0. *"What's the thinnest my line can be?"*
+ * @property penMaxWidth Maximum stroke width when drawing slowly. Must be >= penMinWidth. *"What's the thickest my line can be?"*
  * @property penColor Color of the drawn strokes. *"What color is my pen?"*
- * @property velocitySmoothness How smooth the stroke appears (0.0 = responsive but jumpy, 1.0 = very smooth). *"How smooth should the drawing feel?"*
- * @property widthSmoothness How gradual width changes are (0.0 = abrupt changes, 1.0 = smooth transitions). *"How gradual should thickness changes be?"*
- * @property minVelocity Minimum velocity threshold (px/ms). At this speed, stroke reaches maximum width. *"When does the line stop getting thicker?"*
- * @property maxVelocity Maximum velocity threshold (px/ms). At this speed, stroke reaches minimum width. *"When does the line stop getting thinner?"*
- * @property widthVariation How much width varies with speed (1.0 = linear response, >1.0 = more contrast, <1.0 = less contrast). *"How much should thickness vary with speed?"*
- * @property inputNoiseThreshold Minimum distance in pixels between consecutive points to filter hand tremor. *"How much should I filter hand shake?"*
+ * @property velocitySmoothness How smooth the stroke appears. Range: [0.0, 1.0]. *"How smooth should the drawing feel?"*
+ * @property widthSmoothness How gradual width changes are. Range: [0.0, 1.0]. *"How gradual should thickness changes be?"*
+ * @property minVelocity Minimum velocity threshold (px/ms). Must be >= 0.0. *"When does the line stop getting thicker?"*
+ * @property maxVelocity Maximum velocity threshold (px/ms). Must be >= 0.0. *"When does the line stop getting thinner?"*
+ * @property widthVariation How much width varies with speed. Range: [0.5, 3.0]. *"How much should thickness vary with speed?"*
+ * @property inputNoiseThreshold Minimum distance in pixels to filter hand tremor. Must be >= 0.0. *"How much should I filter hand shake?"*
+ *
+ * @throws IllegalArgumentException if any parameter is out of its valid range
  */
 @Immutable
 public data class SignaturePadConfig(
@@ -41,6 +46,36 @@ public data class SignaturePadConfig(
     val widthVariation: Float = DefaultWidthVariation,
     val inputNoiseThreshold: Float = DefaultInputNoiseThreshold,
 ) {
+
+    init {
+        require(velocitySmoothness in 0.0f..1.0f) {
+            "velocitySmoothness must be between 0.0 and 1.0, got $velocitySmoothness"
+        }
+        require(widthSmoothness in 0.0f..1.0f) {
+            "widthSmoothness must be between 0.0 and 1.0, got $widthSmoothness"
+        }
+        require(minVelocity >= 0.0f) {
+            "minVelocity must be >= 0.0, got $minVelocity"
+        }
+        require(maxVelocity >= 0.0f) {
+            "maxVelocity must be >= 0.0, got $maxVelocity"
+        }
+        require(widthVariation in 0.5f..3.0f) {
+            "widthVariation must be between 0.5 and 3.0, got $widthVariation"
+        }
+        require(inputNoiseThreshold >= 0.0f) {
+            "inputNoiseThreshold must be >= 0.0, got $inputNoiseThreshold"
+        }
+        require(penMinWidth.value > 0) {
+            "penMinWidth must be > 0, got ${penMinWidth.value}dp"
+        }
+        require(penMaxWidth.value > 0) {
+            "penMaxWidth must be > 0, got ${penMaxWidth.value}dp"
+        }
+        require(penMaxWidth >= penMinWidth) {
+            "penMaxWidth (${penMaxWidth.value}dp) must be >= penMinWidth (${penMinWidth.value}dp)"
+        }
+    }
 
     public companion object {
         /**
