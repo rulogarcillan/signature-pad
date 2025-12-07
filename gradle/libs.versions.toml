@@ -1,74 +1,46 @@
 # ====================================
-# Versions Catalog - SignaturePad
+# Versions Catalog - SignaturePad KMP
 # ====================================
 
 [versions]
 # Build Tools
 agp = "8.13.1"
 kotlin = "2.2.21"
-detekt = "1.23.8"
-detektComposeRules = "0.4.23"
+composeMultiplatform = "1.9.3"
 
 # AndroidX
+activityCompose = "1.12.1"
 coreKtx = "1.17.0"
-activityCompose = "1.12.0"
 
-# Compose
-composeBom = "2025.11.01"
-materialIconsExtended = "1.7.8"
+# Code Quality
+detekt = "1.23.8"
+detektComposeRules = "0.5.1"
+
+# KotlinX
+kotlinxDatetime = "0.7.1"
 
 # Testing
 junit = "4.13.2"
-junitVersion = "1.3.0"
-espressoCore = "3.7.0"
 
 # Publishing
-vanniktech-maven-publish = "0.34.0"
+vanniktech-maven-publish = "0.35.0"
 
 [libraries]
 # ====================================
-# AndroidX Core
+# AndroidX
 # ====================================
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-
-# ====================================
-# Compose
-# ====================================
-# BOM - gestiona versiones de todas las librerías Compose
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-
-# Activity Compose
-androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-
-# Compose UI
-androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
-androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-
-# Compose Material3
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-
-# Compose Foundation
-androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
-
-# Material Icons Extended
-androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 
 # ====================================
-# Code Quality
+# KotlinX
 # ====================================
-detektComposeRules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
-detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
-
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 # ====================================
-# Testing
+# Code Quality (for Detekt)
 # ====================================
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-
-# Compose Testing
-androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+detekt-compose-rules = { module = "io.nlopez.compose.rules:detekt", version.ref = "detektComposeRules" }
 
 [plugins]
 # ====================================
@@ -76,8 +48,9 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 # ====================================
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 # Code Quality
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

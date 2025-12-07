@@ -1,8 +1,53 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.vanniktech.maven.publish)
+}
+
+
+kotlin {
+    androidTarget { 
+        publishLibraryVariants("release")
+    }
+    
+    jvm("desktop")
+    
+    // Future: iosX64(), iosArm64(), iosSimulatorArm64()
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                // Compose Multiplatform dependencies
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.ui)
+                implementation(compose.components.resources)
+
+                // KotlinX DateTime
+                implementation(libs.kotlinx.datetime)
+            }
+        }
+
+        androidMain {
+            dependencies {
+                // Android-specific dependencies if needed
+            }
+        }
+
+        val desktopMain by getting {
+            dependencies {
+                // Desktop-specific dependencies if needed
+            }
+        }
+    }
+    
+    compilerOptions {
+        freeCompilerArgs.add("-Xexplicit-api=strict")
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+    }
 }
 
 android {
@@ -11,38 +56,16 @@ android {
 
     defaultConfig {
         minSdk = 21
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+    
+    buildFeatures {
+        compose = true
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-            freeCompilerArgs.add("-Xexplicit-api=strict")
-            freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
-        }
-    }
-    buildFeatures {
-        compose = true
-    }
-}
-
-dependencies {
-    implementation(libs.androidx.core.ktx)
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.foundation)
 }
 
 
@@ -55,14 +78,14 @@ mavenPublishing {
 
     coordinates(
         groupId = "com.tuppersoft",
-        artifactId = "signature-pad",
+        artifactId = "signature-pad",  // Maven Central auto-generates: signature-pad-android, signature-pad-jvm, etc.
         version = project.findProperty("version") as? String
             ?: error("The 'version' parameter has not been defined. Use -Pversion=...")
     )
 
     pom {
-        name.set("Signature Pad")
-        description.set("A simple Android library for capturing signatures using a touch screen for Jetpack Compose.")
+        name.set("Signature Pad KMP")
+        description.set("A Kotlin Multiplatform library for capturing smooth signatures with Bézier curves on Android, Desktop, iOS and Web using Compose Multiplatform.")
         inceptionYear.set("2025")
         url.set("https://github.com/rulogarcillan/signature-pad")
 
@@ -76,7 +99,7 @@ mavenPublishing {
 
         developers {
             developer {
-                id.set("Rulo Garcillan")
+                id.set("rulogarcillan")
                 name.set("Rulo Garcillan")
                 email.set("raulrcs@gmail.com")
             }
@@ -90,7 +113,7 @@ mavenPublishing {
         scm {
             url.set("https://github.com/rulogarcillan/signature-pad")
             connection.set("scm:git:git://github.com/rulogarcillan/signature-pad.git")
-            developerConnection.set("scm:git:ssh://github.com:rulogarcillan/signature-pad.git")
+            developerConnection.set("scm:git:ssh://git@github.com:rulogarcillan/signature-pad.git")
         }
 
         issueManagement {
