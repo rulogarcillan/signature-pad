@@ -1,8 +1,46 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.multiplatform) // Changed from kotlin.android
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.vanniktech.maven.publish)
+}
+
+kotlin {
+    androidTarget { 
+        publishLibraryVariants("release")
+    }
+    
+    jvm("desktop")
+    
+    // Future: iosX64(), iosArm64(), iosSimulatorArm64()
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.androidx.compose.runtime)
+                implementation(libs.androidx.compose.ui)
+                implementation(libs.androidx.compose.foundation)
+                implementation(libs.androidx.compose.ui.graphics) // Critical for rendering
+                implementation(libs.kotlinx.datetime)
+            }
+        }
+        val androidMain by getting {
+            dependencies {
+                // Android specific dependencies if any
+                implementation(libs.androidx.core.ktx)
+            }
+        }
+        val desktopMain by getting {
+             dependencies {
+                 implementation(libs.androidx.compose.ui.tooling.preview)
+             }
+        }
+    }
+    
+    compilerOptions {
+        freeCompilerArgs.add("-Xexplicit-api=strict")
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+    }
 }
 
 android {
@@ -11,39 +49,16 @@ android {
 
     defaultConfig {
         minSdk = 21
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
+    
+    buildFeatures {
+        compose = true
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-            freeCompilerArgs.add("-Xexplicit-api=strict")
-            freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
-        }
-    }
-    buildFeatures {
-        compose = true
-    }
-}
-
-dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.datetime)
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.foundation)
 }
 
 
