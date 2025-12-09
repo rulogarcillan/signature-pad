@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.multiplatform)
@@ -8,12 +10,27 @@ plugins {
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
-    androidTarget { 
+    androidTarget {
         publishLibraryVariants("release")
     }
-    
-    jvm("desktop")
-    
+
+    jvm()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    linuxX64()
+
+    js {
+        browser()
+        binaries.executable()
+    }
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        binaries.executable()
+    }
+
 
     sourceSets {
         commonMain {
@@ -43,7 +60,7 @@ kotlin {
         }
 
     }
-    
+
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-api=strict")
         freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
@@ -57,11 +74,11 @@ android {
     defaultConfig {
         minSdk = 21
     }
-    
+
     buildFeatures {
         compose = true
     }
-    
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
