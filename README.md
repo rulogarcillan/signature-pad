@@ -258,9 +258,9 @@ signature-pad/
 | ----------------- | -------- | --------------- | -------------------------------------------------------------------- |
 | **Android**       | ✅ Stable | API 21+         | Full support                                                         |
 | **Desktop (JVM)** | ✅ Stable | Java 17+        | Windows, macOS, Linux                                                |
-| **iOS**           | ✅ Stable | iOS 15+         | arm64, x64, simulator - [Setup Guide](iOS-SETUP.md)                  |
-| **Web (Wasm)**    | ✅ Stable | Modern browsers | Chrome, Firefox, Safari (experimental) - [Setup Guide](WEB-SETUP.md) |
-| **Web (JS)**      | ✅ Stable | Modern browsers | Chrome, Firefox, Safari, Edge - [Setup Guide](WEB-SETUP.md)          |
+| **iOS**           | 🚧 Coming Soon | iOS 15+         | arm64, x64, simulator - [Setup Guide](iOS-SETUP.md)                  |
+| **Web (Wasm)**    | 🚧 Coming Soon | Modern browsers | Chrome, Firefox, Safari (experimental) - [Setup Guide](WEB-SETUP.md) |
+| **Web (JS)**      | 🚧 Coming Soon | Modern browsers | Chrome, Firefox, Safari, Edge - [Setup Guide](WEB-SETUP.md)          |
 
 📖 **[Complete Platform Support Documentation](PLATFORM-SUPPORT.md)**
 

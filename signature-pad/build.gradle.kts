@@ -14,19 +14,6 @@ kotlin {
     
     jvm("desktop")
     
-    // iOS targets
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-
-    // Web targets
-    wasmJs {
-        browser()
-    }
-
-    js(IR) {
-        browser()
-    }
 
     sourceSets {
         commonMain {
@@ -55,23 +42,6 @@ kotlin {
             }
         }
 
-        iosMain {
-            dependencies {
-                // iOS-specific dependencies if needed
-            }
-        }
-
-        val wasmJsMain by getting {
-            dependencies {
-                // Wasm-specific dependencies if needed
-            }
-        }
-
-        jsMain {
-            dependencies {
-                // JS-specific dependencies if needed
-            }
-        }
     }
     
     compilerOptions {
