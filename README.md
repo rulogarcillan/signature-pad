@@ -253,15 +253,15 @@ signature-pad/
 
 ## 🎯 Platform Support
 
-| Platform          | Status   | Version         | Notes                                                                |
-| ----------------- | -------- | --------------- | -------------------------------------------------------------------- |
-| **Android**       | ✅ Stable | API 21+         | Full support                                                         |
-| **Desktop (JVM)** | ✅ Stable | Java 17+        | Windows, macOS, Linux                                                |
-| **iOS**           | ✅ Stable | iOS 15+         | arm64, x64, simulator                  |  
-| **Web (Wasm)**    | ✅ Stable | Modern browsers | Chrome, Firefox, Safari (experimental) |  
-| **Web (JS)**      | ✅ Stable | Modern browsers | Chrome, Firefox, Safari, Edge         | ponga comming son
+| Platform          | Status      | Version         | Notes                                                                |
+| ----------------- | ----------- | --------------- | -------------------------------------------------------------------- |
+| **Android**       | ✅ Stable   | API 21+         | Full support                                                         |
+| **Desktop (JVM)** | ✅ Stable   | Java 17+        | Windows, macOS, Linux                                                |
+| **iOS**           | ✅ Stable   | iOS 15+         | arm64, x64, simulator                                                |
+| **Web (Wasm)**    | ✅ Stable   | Modern browsers | Chrome, Firefox, Safari (experimental support)                       |
+| **Web (JS)**      | ✅ Stable   | Modern browsers | Chrome, Firefox, Safari, Edge                                        |
 
-📖 **[Complete Platform Support Documentation](PLATFORM-SUPPORT.md)**
+> **Note**: All platforms share 100% of the code through `commonMain`. Platform-specific folders (`iosMain`, `jsMain`, `wasmJsMain`) are intentionally empty as the library uses pure Compose Multiplatform APIs that work across all targets.
 
 ---
 
