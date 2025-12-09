@@ -1,5 +1,9 @@
 # Signature Pad KMP
 
+<p align="center">
+  <img src="ART/header.png" alt="Signature Pad Header"/>
+</p>
+
 [![Maven Central](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20Desktop%20%7C%20iOS%20%7C%20Web-brightgreen.svg)](https://kotlinlang.org/docs/multiplatform.html)
@@ -13,7 +17,7 @@ A modern **Kotlin Multiplatform** library for capturing smooth signature drawing
 Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin for KMP with Compose Multiplatform.
 
 <p align="center">
-  <img src="ART/sign.gif" alt="Signature Pad Demo" width="350"/>
+  <img src="ART/Signature.gif" alt="Signature Pad Demo" width="350"/>
 </p>
 
 ---
@@ -209,17 +213,17 @@ SignaturePad(
 
 Complete reference for all configuration options:
 
-| Parameter             | Type  | Range   | Default            | User Question                                  | Description                                                      |
-| --------------------- | ----- | ------- | ------------------ | ---------------------------------------------- | ---------------------------------------------------------------- |
-| `penMinWidth`         | Dp    | > 0     | 1.0.dp             | *"What's the thinnest my line can be?"*        | Minimum stroke width (fast drawing)                              |
-| `penMaxWidth`         | Dp    | > 0     | 4.0.dp             | *"What's the thickest my line can be?"*        | Maximum stroke width (slow drawing)                              |
-| `penColor`            | Color | -       | Color(0xFF003D82)  | *"What color is my pen?"*                      | Stroke color                                                     |
-| `velocitySmoothness`  | Float | 0.0-1.0 | 0.85               | *"How smooth should the drawing feel?"*        | Stroke smoothness (0.0 = jumpy, 1.0 = very smooth)               |
-| `widthSmoothness`     | Float | 0.0-1.0 | 0.7                | *"How gradual should thickness changes be?"*   | Width transition smoothness (0.0 = abrupt, 1.0 = gradual)        |
-| `minVelocity`         | Float | ≥ 0     | 0.0                | *"When does the line stop getting thicker?"*   | Velocity for maximum width (px/ms)                               |
-| `maxVelocity`         | Float | ≥ 0     | 8.0                | *"When does the line stop getting thinner?"*   | Velocity for minimum width (px/ms)                               |
-| `widthVariation`      | Float | 0.5-3.0 | 1.5                | *"How much should thickness vary with speed?"* | Width contrast (1.0 = linear, >1.0 = more contrast, <1.0 = less) |
-| `inputNoiseThreshold` | Float | ≥ 0     | 0.8                | *"How much should I filter hand shake?"*       | Min distance between points to filter tremor (px)                |
+| Parameter             | Type  | Range   | Default           | User Question                                  | Description                                                      |
+| --------------------- | ----- | ------- | ----------------- | ---------------------------------------------- | ---------------------------------------------------------------- |
+| `penMinWidth`         | Dp    | > 0     | 1.0.dp            | *"What's the thinnest my line can be?"*        | Minimum stroke width (fast drawing)                              |
+| `penMaxWidth`         | Dp    | > 0     | 4.0.dp            | *"What's the thickest my line can be?"*        | Maximum stroke width (slow drawing)                              |
+| `penColor`            | Color | -       | Color(0xFF003D82) | *"What color is my pen?"*                      | Stroke color                                                     |
+| `velocitySmoothness`  | Float | 0.0-1.0 | 0.85              | *"How smooth should the drawing feel?"*        | Stroke smoothness (0.0 = jumpy, 1.0 = very smooth)               |
+| `widthSmoothness`     | Float | 0.0-1.0 | 0.7               | *"How gradual should thickness changes be?"*   | Width transition smoothness (0.0 = abrupt, 1.0 = gradual)        |
+| `minVelocity`         | Float | ≥ 0     | 0.0               | *"When does the line stop getting thicker?"*   | Velocity for maximum width (px/ms)                               |
+| `maxVelocity`         | Float | ≥ 0     | 8.0               | *"When does the line stop getting thinner?"*   | Velocity for minimum width (px/ms)                               |
+| `widthVariation`      | Float | 0.5-3.0 | 1.5               | *"How much should thickness vary with speed?"* | Width contrast (1.0 = linear, >1.0 = more contrast, <1.0 = less) |
+| `inputNoiseThreshold` | Float | ≥ 0     | 0.8               | *"How much should I filter hand shake?"*       | Min distance between points to filter tremor (px)                |
 
 ---
 
@@ -250,13 +254,13 @@ signature-pad/
 
 ## 🎯 Platform Support
 
-| Platform | Status | Version | Notes |
-|----------|--------|---------|-------|
-| **Android** | ✅ Stable | API 21+ | Full support |
-| **Desktop (JVM)** | ✅ Stable | Java 17+ | Windows, macOS, Linux |
-| **iOS** | ✅ Stable | iOS 15+ | arm64, x64, simulator - [Setup Guide](iOS-SETUP.md) |
-| **Web (Wasm)** | ✅ Stable | Modern browsers | Chrome, Firefox, Safari (experimental) - [Setup Guide](WEB-SETUP.md) |
-| **Web (JS)** | ✅ Stable | Modern browsers | Chrome, Firefox, Safari, Edge - [Setup Guide](WEB-SETUP.md) |
+| Platform          | Status   | Version         | Notes                                                                |
+| ----------------- | -------- | --------------- | -------------------------------------------------------------------- |
+| **Android**       | ✅ Stable | API 21+         | Full support                                                         |
+| **Desktop (JVM)** | ✅ Stable | Java 17+        | Windows, macOS, Linux                                                |
+| **iOS**           | ✅ Stable | iOS 15+         | arm64, x64, simulator - [Setup Guide](iOS-SETUP.md)                  |
+| **Web (Wasm)**    | ✅ Stable | Modern browsers | Chrome, Firefox, Safari (experimental) - [Setup Guide](WEB-SETUP.md) |
+| **Web (JS)**      | ✅ Stable | Modern browsers | Chrome, Firefox, Safari, Edge - [Setup Guide](WEB-SETUP.md)          |
 
 📖 **[Complete Platform Support Documentation](PLATFORM-SUPPORT.md)**
 
@@ -288,11 +292,6 @@ cd signature-pad
 # Run the sample app (Desktop)
 ./gradlew :app:run
 
-# Run the sample app (Web - Wasm)
-./gradlew :app:wasmJsBrowserDevelopmentRun
-
-# Run the sample app (Web - JS)
-./gradlew :app:jsBrowserDevelopmentRun
 
 # For iOS, use Xcode or Kotlin Multiplatform Mobile plugin in Android Studio
 ```
