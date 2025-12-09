@@ -257,7 +257,7 @@ signature-pad/
 | ----------------- | -------- | --------------- | -------------------------------------------------------------------- |
 | **Android**       | ✅ Stable | API 21+         | Full support                                                         |
 | **Desktop (JVM)** | ✅ Stable | Java 17+        | Windows, macOS, Linux                                                |
-modifica el readme para que | **iOS**           | ✅ Stable | iOS 15+         | arm64, x64, simulator                  |  
+| **iOS**           | ✅ Stable | iOS 15+         | arm64, x64, simulator                  |  
 | **Web (Wasm)**    | ✅ Stable | Modern browsers | Chrome, Firefox, Safari (experimental) |  
 | **Web (JS)**      | ✅ Stable | Modern browsers | Chrome, Firefox, Safari, Edge         | ponga comming son
 
