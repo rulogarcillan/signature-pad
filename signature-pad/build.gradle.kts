@@ -46,19 +46,6 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-
-        androidMain {
-            dependencies {
-                // Android-specific dependencies if needed
-            }
-        }
-
-        val desktopMain by getting {
-            dependencies {
-                // Desktop-specific dependencies if needed
-            }
-        }
-
     }
 
     compilerOptions {
