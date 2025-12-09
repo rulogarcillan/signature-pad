@@ -17,7 +17,7 @@ A modern **Kotlin Multiplatform** library for capturing smooth signature drawing
 Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin for KMP with Compose Multiplatform.
 
 <p align="center">
-  <img src="ART/Signature.gif" alt="Signature Pad Demo" width="350"/>
+  <img src="ART/Signature.gif" alt="Signature Pad Demo" width="720"/>
 </p>
 
 ---
