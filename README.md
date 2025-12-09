@@ -78,7 +78,7 @@ fun SignatureScreen() {
         SignaturePad(
             state = state,
             config = SignaturePadConfig.fountainPen(),
-            modifier = Modifier.fillMaxWidth().weight(1f)
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
