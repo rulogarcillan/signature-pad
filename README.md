@@ -1,8 +1,8 @@
 # Signature Pad KMP
 
-<p align="center">
-  <img src="ART/header.png" alt="Signature Pad Header"/>
-</p>
+
+  <img src="ART/header.png" alt="Signature Pad Header" width="620" />
+
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -16,9 +16,8 @@ A modern **Kotlin Multiplatform** library for capturing smooth signature drawing
 
 Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin for KMP with Compose Multiplatform.
 
-<p align="center">
-  <img src="ART/Signature.gif" alt="Signature Pad Demo" width="720"/>
-</p>
+  <img src="ART/Signature.gif" alt="Signature Pad Demo" width="620"/>
+
 
 ---
 
