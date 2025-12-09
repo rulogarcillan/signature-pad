@@ -8,17 +8,18 @@ plugins {
     alias(libs.plugins.vanniktech.maven.publish)
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 kotlin {
-    androidTarget {
+    androidTarget { 
         publishLibraryVariants("release")
     }
+    
+    jvm("desktop")
 
-    jvm()
+    jvm("desktop")
     iosX64()
     iosArm64()
     iosSimulatorArm64()
-    linuxX64()
 
     js {
         browser()
@@ -30,7 +31,8 @@ kotlin {
         browser()
         binaries.executable()
     }
-
+    
+    // Future: iosX64(), iosArm64(), iosSimulatorArm64()
 
     sourceSets {
         commonMain {
@@ -46,8 +48,20 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-    }
 
+        androidMain {
+            dependencies {
+                // Android-specific dependencies if needed
+            }
+        }
+
+        val desktopMain by getting {
+            dependencies {
+                // Desktop-specific dependencies if needed
+            }
+        }
+    }
+    
     compilerOptions {
         freeCompilerArgs.add("-Xexplicit-api=strict")
         freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
@@ -61,11 +75,11 @@ android {
     defaultConfig {
         minSdk = 21
     }
-
+    
     buildFeatures {
         compose = true
     }
-
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
