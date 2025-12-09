@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.vanniktech.maven.publish)
 }
 
-
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 kotlin {
     androidTarget { 
         publishLibraryVariants("release")
@@ -14,7 +14,19 @@ kotlin {
     
     jvm("desktop")
     
-    // Future: iosX64(), iosArm64(), iosSimulatorArm64()
+    // iOS targets
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+
+    // Web targets
+    wasmJs {
+        browser()
+    }
+
+    js(IR) {
+        browser()
+    }
 
     sourceSets {
         commonMain {
@@ -40,6 +52,24 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 // Desktop-specific dependencies if needed
+            }
+        }
+
+        iosMain {
+            dependencies {
+                // iOS-specific dependencies if needed
+            }
+        }
+
+        val wasmJsMain by getting {
+            dependencies {
+                // Wasm-specific dependencies if needed
+            }
+        }
+
+        jsMain {
+            dependencies {
+                // JS-specific dependencies if needed
             }
         }
     }

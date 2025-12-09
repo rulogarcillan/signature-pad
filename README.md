@@ -2,14 +2,13 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.tuppersoft/signature-pad?color=32cd32)](https://central.sonatype.com/artifact/com.tuppersoft/signature-pad)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20Desktop%20%7C%20iOS*%20%7C%20Web*-brightgreen.svg)](https://kotlinlang.org/docs/multiplatform.html)
+[![Platforms](https://img.shields.io/badge/Platforms-Android%20%7C%20Desktop%20%7C%20iOS%20%7C%20Web-brightgreen.svg)](https://kotlinlang.org/docs/multiplatform.html)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple.svg)](https://kotlinlang.org)
 [![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.9.3-blue.svg)](https://www.jetbrains.com/lp/compose-multiplatform/)
 
 A modern **Kotlin Multiplatform** library for capturing smooth signature drawings with **UNDO/REDO** functionality, built with **Compose Multiplatform**.
 
-✅ **Currently Supported**: Android • Desktop (JVM)  
-🚧 **Coming Soon**: iOS • Web (Wasm/JS)
+✅ **Fully Supported**: Android • Desktop (JVM) • iOS • Web (Wasm/JS)
 
 Enhanced fork of [gcacace/android-signaturepad](https://github.com/gcacace/android-signaturepad), completely rewritten in Kotlin for KMP with Compose Multiplatform.
 
@@ -255,8 +254,11 @@ signature-pad/
 |----------|--------|---------|-------|
 | **Android** | ✅ Stable | API 21+ | Full support |
 | **Desktop (JVM)** | ✅ Stable | Java 17+ | Windows, macOS, Linux |
-| **iOS** | 🚧 Planned | - | Coming in v2.0 |
-| **Web (Wasm)** | 🚧 Planned | - | Coming in v2.0 |
+| **iOS** | ✅ Stable | iOS 15+ | arm64, x64, simulator - [Setup Guide](iOS-SETUP.md) |
+| **Web (Wasm)** | ✅ Stable | Modern browsers | Chrome, Firefox, Safari (experimental) - [Setup Guide](WEB-SETUP.md) |
+| **Web (JS)** | ✅ Stable | Modern browsers | Chrome, Firefox, Safari, Edge - [Setup Guide](WEB-SETUP.md) |
+
+📖 **[Complete Platform Support Documentation](PLATFORM-SUPPORT.md)**
 
 ---
 
@@ -284,7 +286,15 @@ cd signature-pad
 ./gradlew :app:installDebug
 
 # Run the sample app (Desktop)
-./gradlew :app:desktopRun
+./gradlew :app:run
+
+# Run the sample app (Web - Wasm)
+./gradlew :app:wasmJsBrowserDevelopmentRun
+
+# Run the sample app (Web - JS)
+./gradlew :app:jsBrowserDevelopmentRun
+
+# For iOS, use Xcode or Kotlin Multiplatform Mobile plugin in Android Studio
 ```
 
 ---
